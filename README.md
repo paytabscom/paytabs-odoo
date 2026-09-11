@@ -63,6 +63,9 @@ odoo -c /etc/odoo/odoo.conf -d <database> -i payment_paytabs --stop-after-init
    **Card** is selected, the page offers every card scheme enabled on your profile. Enable a
    method in Odoo only if it is also enabled on your PayTabs profile, otherwise PayTabs rejects
    the payment request.*
+   - **Capture Amount Manually**: authorize the amount at checkout and capture it later (see
+     [Use Manual Capture](#use-manual-capture)). Odoo only allows it when every enabled payment
+     method supports it (**Card**, **PayPal**, **Samsung Pay**); disable the other methods first
 6. Click `Save`
 
 ---
@@ -86,7 +89,7 @@ processed.
 *Note: The callback is not the IPN. The IPN is configured per profile in the merchant dashboard and
 reports changes to any transaction of the profile, including those made from the dashboard. The module does not rely on it; if you configure one, you
 may point it at the same webhook URL — duplicate notifications are handled — but follow-up
-transactions (capture, void, dashboard refunds) are ignored in this version.*
+transactions made from the dashboard (captures, voids, refunds) are ignored in this version.*
 
 ---
 
@@ -99,15 +102,38 @@ transactions (capture, void, dashboard refunds) are ignored in this version.*
 
 ---
 
+## Use Manual Capture
+
+With **Capture Amount Manually** enabled, the payment page authorizes the amount instead of
+charging it, and the transaction is set to **Authorized** once the callback is processed.
+
+1. Open the payment transaction (`Invoicing >> Configuration >> Payment Transactions`, or from the
+   sales order's **Transactions** smart button)
+2. Click `Capture` to charge the customer, or `Void` to release the authorized amount
+3. For a partial capture or void, enter the amount and confirm; the source transaction stays
+   **Authorized** until the full amount has been captured or voided
+
+Captures and voids are sent to PayTabs immediately and their result is applied from the response.
+The authorization holds the amount for a limited time, set by the card issuer; capture it before
+it expires.
+
+*Note: PayTabs may put a follow-up on hold (status `H`) according to the profile's fraud rules.
+The transaction is then set in error in Odoo with the reason in the chatter; release or capture the
+amount from the PayTabs dashboard, as the API refuses further follow-ups on that transaction.*
+
+---
+
 ## Transaction Statuses
 
 | PayTabs status | Odoo transaction state |
 | --- | --- |
-| `A` Authorised | Done |
+| `A` Authorised (`sale`, `capture`, `refund`) | Done |
+| `A` Authorised (`auth`) | Authorized |
+| `A` Authorised (`void`) | Cancelled |
 | `P` Pending | Pending |
 | `C` Cancelled, `V` Voided | Cancelled |
 | `D` Declined, `E` Error, `X` Expired | Error |
-| `H` Hold | Error — the amount is authorized and held; capture or void it from the PayTabs dashboard |
+| `H` Hold | Error — the amount is held; capture or release it from the PayTabs dashboard |
 
 For declined, failed, expired and held transactions, the reason reported by PayTabs is posted in the
 chatter of the linked invoice, sales order or payment for the merchant. The customer only sees a
@@ -118,9 +144,8 @@ generic message.
 ## Not Implemented
 
 - Tokenization (saved cards)
-- Auth / Capture / Void
 - Express checkout
-- IPN
+- IPN (follow-ups made from the PayTabs dashboard are not synchronized)
 
 ---
 
@@ -155,8 +180,10 @@ API: [PayTabs PT2 API](https://support.paytabs.com/en/support/solutions/folders/
 
 The module uses the generic payment-with-redirection flow of the `payment` module. The payment
 page is created through the `payment/request` endpoint, which returns the URL the customer is
-redirected to. Refunds use the same endpoint with the `refund` transaction type, referencing the
-original transaction.
+redirected to, with the `sale` transaction type, or `auth` when the amount is captured manually.
+Refunds, captures and voids use the same endpoint with the `refund`, `capture` and `void`
+transaction types, referencing the original transaction. PayTabs accepts `void` for both the full
+and the partial release of an authorized amount.
 
 Callback notifications are signed with the server key (HMAC-SHA256 over the raw body, compared
 with the `signature` header) and rejected if the signature does not match.
@@ -166,4 +193,5 @@ with the `signature` header) and rejected if the signature does not match.
 ## Module History
 
 - `19.0.1.0.0`
-  - The first version of the module is released.
+  - The first version of the module is released: hosted payment page, callback processing,
+    refunds, manual capture and void.

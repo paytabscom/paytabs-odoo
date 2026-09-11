@@ -150,6 +150,36 @@ class TestProcessingFlows(PayTabsCommon, PaymentHttpCommon):
         response = self._make_json_request(url, data=data)
         self.assertEqual(response.status_code, 200)
 
+    def test_webhook_notification_authorizes_the_transaction(self):
+        """ Test that an 'Auth' webhook notification sets the transaction as authorized. """
+        self.provider.capture_manually = True
+        tx = self._create_transaction('redirect')
+        url = self._build_url(PayTabsController._webhook_url)
+        raw_body = json.dumps(self.auth_webhook_data).encode()
+        signature = tx.provider_id._paytabs_calculate_signature(raw_body, is_redirect=False)
+        response = self.url_open(
+            url,
+            data=raw_body,
+            headers={'Content-Type': 'application/json', 'signature': signature},
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(tx.state, 'authorized')
+
+    def test_webhook_notification_for_capture_is_routed_to_the_child_transaction(self):
+        """ Test that a capture webhook notification updates the capture child, idempotently. """
+        source_tx = self._create_authorized_transaction()
+        capture_tx = source_tx._create_child_transaction(self.amount)
+        url = self._build_url(PayTabsController._webhook_url)
+        raw_body = json.dumps(self.capture_data).encode()
+        signature = source_tx.provider_id._paytabs_calculate_signature(raw_body, is_redirect=False)
+        headers = {'Content-Type': 'application/json', 'signature': signature}
+        for _i in range(2):  # PayTabs may send the same notification more than once.
+            response = self.url_open(url, data=raw_body, headers=headers)
+            self.assertEqual(response.status_code, 200)
+        self.assertEqual(capture_tx.state, 'done')
+        self.assertEqual(capture_tx.provider_reference, 'TST2016700000694')
+        self.assertEqual(source_tx.state, 'done')
+
     @mute_logger('odoo.addons.payment_paytabs.controllers.main')
     def test_redirect_notification_only_redirects_to_status_page(self):
         """ Test that signed return data redirects to the status page without updating the tx. """

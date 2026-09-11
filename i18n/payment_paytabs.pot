@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0-20260619\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-11 13:13+0000\n"
-"PO-Revision-Date: 2026-09-11 13:13+0000\n"
+"POT-Creation-Date: 2026-09-11 14:27+0000\n"
+"PO-Revision-Date: 2026-09-11 14:27+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -20,6 +20,12 @@ msgstr ""
 #: code:addons/payment_paytabs/models/payment_transaction.py:0
 msgid ""
 "An error occurred during the processing of your payment. Please try again."
+msgstr ""
+
+#. module: payment_paytabs
+#. odoo-python
+#: code:addons/payment_paytabs/models/payment_transaction.py:0
+msgid "Capture of %s"
 msgstr ""
 
 #. module: payment_paytabs
@@ -136,9 +142,10 @@ msgstr ""
 #. odoo-python
 #: code:addons/payment_paytabs/models/payment_transaction.py:0
 msgid ""
-"PayTabs authorized the transaction %(ref)s but put the amount on hold "
-"(status H). Manual capture is not supported; capture or void it from the "
-"PayTabs dashboard."
+"PayTabs authorized the transaction %(ref)s but its risk screening put the "
+"amount on hold (status H). PayTabs refuses captures and voids sent from Odoo"
+" while the hold lasts; review the transaction in the PayTabs dashboard and "
+"capture or void it from there."
 msgstr ""
 
 #. module: payment_paytabs
@@ -223,6 +230,19 @@ msgid "Server Key"
 msgstr ""
 
 #. module: payment_paytabs
+#. odoo-python
+#: code:addons/payment_paytabs/models/payment_transaction.py:0
+msgid ""
+"The %(tran_type)s request was rejected. Reason: %(message)s (code %(code)s)"
+msgstr ""
+
+#. module: payment_paytabs
+#. odoo-python
+#: code:addons/payment_paytabs/models/payment_transaction.py:0
+msgid "The capture of the transaction %s failed."
+msgstr ""
+
+#. module: payment_paytabs
 #: model:ir.model.fields,help:payment_paytabs.field_payment_provider__paytabs_profile_id
 msgid ""
 "The profile ID of the PayTabs account. Test and live accounts have distinct "
@@ -237,12 +257,6 @@ msgid ""
 "Tunnel) or a reverse proxy with a different hostname. Only the return and "
 "callback URLs sent to PayTabs are affected. Leave empty to use the system "
 "base URL."
-msgstr ""
-
-#. module: payment_paytabs
-#. odoo-python
-#: code:addons/payment_paytabs/models/payment_transaction.py:0
-msgid "The refund request was rejected. Reason: %(message)s (code %(code)s)"
 msgstr ""
 
 #. module: payment_paytabs
@@ -271,6 +285,12 @@ msgid ""
 "The title shown at checkout for the Card payment method of this provider, "
 "e.g. \"PayTabs Payments\". Leave empty to keep the standard \"Card\" title. "
 "Other payment methods keep their own name."
+msgstr ""
+
+#. module: payment_paytabs
+#. odoo-python
+#: code:addons/payment_paytabs/models/payment_transaction.py:0
+msgid "The void of the transaction %s failed."
 msgstr ""
 
 #. module: payment_paytabs
@@ -309,6 +329,12 @@ msgid "United Arab Emirates"
 msgstr ""
 
 #. module: payment_paytabs
+#. odoo-python
+#: code:addons/payment_paytabs/models/payment_transaction.py:0
+msgid "Void of %s"
+msgstr ""
+
+#. module: payment_paytabs
 #: model:ir.model.fields,help:payment_paytabs.field_payment_provider__paytabs_hide_shipping
 msgid ""
 "Whether to hide the shipping address section on the PayTabs payment page. "
@@ -340,6 +366,12 @@ msgstr ""
 #. module: payment_paytabs
 #: model_terms:payment.provider,done_msg:payment_paytabs.payment_provider_paytabs
 msgid "Your payment has been processed."
+msgstr ""
+
+#. module: payment_paytabs
+#. odoo-python
+#: code:addons/payment_paytabs/models/payment_transaction.py:0
+msgid "capture or void"
 msgstr ""
 
 #. module: payment_paytabs

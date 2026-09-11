@@ -31,6 +31,18 @@ class TestPaymentTransaction(PayTabsCommon):
         self.assertTrue(payload['return'].endswith('/payment/paytabs/return'))
         self.assertTrue(payload['callback'].endswith('/payment/paytabs/webhook'))
 
+    def test_paypage_payload_requests_an_authorization_when_capturing_manually(self):
+        """ Test that the payment page authorizes instead of selling when capture is manual. """
+        self.provider.capture_manually = True
+        tx = self._create_transaction('redirect')
+        self.assertEqual(tx._paytabs_prepare_paypage_payload()['tran_type'], 'auth')
+
+    def test_child_transaction_reference_keeps_the_child_prefix(self):
+        """ Test that capture and refund children keep the `P-`/`R-` prefixed references. """
+        source_tx = self._create_authorized_transaction()
+        capture_tx = source_tx._create_child_transaction(self.amount)
+        self.assertEqual(capture_tx.reference, f'P-{source_tx.reference}')
+
     def test_paypage_payload_selects_a_supported_language(self):
         """ Test that the payment page language is Arabic for Arabic partners, English otherwise. """
         tx = self._create_transaction('redirect')
@@ -289,12 +301,97 @@ class TestPaymentTransaction(PayTabsCommon):
             refund_tx._apply_updates(payload)
         self.assertEqual(refund_tx.state, 'done')
 
-    def test_apply_updates_accepts_auth_data_on_sale_transaction(self):
-        """ Test that non follow-up transaction types are accepted on a sale transaction. """
+    def test_apply_updates_sets_auth_data_as_authorized(self):
+        """ Test that a successful authorization sets the transaction as authorized. """
         tx = self._create_transaction('redirect')
-        payload = dict(self.webhook_data, tran_type='Auth')
+        tx._apply_updates(self.auth_webhook_data)
+        self.assertEqual(tx.state, 'authorized')
+        self.assertEqual(tx.provider_reference, 'TST2016700000692')
+
+    def test_apply_updates_sets_register_data_as_done(self):
+        """ Test that other non follow-up transaction types are accepted as sales. """
+        tx = self._create_transaction('redirect')
+        payload = dict(self.webhook_data, tran_type='Register')
         tx._apply_updates(payload)
         self.assertEqual(tx.state, 'done')
+
+    @mute_logger('odoo.addons.payment_paytabs.models.payment_transaction')
+    def test_apply_updates_ignores_capture_data_on_source_transaction(self):
+        """ Test that capture data doesn't update the authorized source transaction. """
+        source_tx = self._create_authorized_transaction()
+        payload = dict(self.capture_data, cart_id=source_tx.reference)
+        source_tx._apply_updates(payload)
+        self.assertEqual(source_tx.state, 'authorized')
+        self.assertEqual(source_tx.provider_reference, 'TST2016700000692')
+
+    def test_apply_updates_confirms_full_capture(self):
+        """ Test that a full capture confirms the child and the source transaction. """
+        source_tx = self._create_authorized_transaction()
+        capture_tx = source_tx._create_child_transaction(self.amount)
+        capture_tx._apply_updates(self.capture_data)
+        self.assertEqual(capture_tx.state, 'done')
+        self.assertEqual(capture_tx.provider_reference, 'TST2016700000694')
+        self.assertEqual(source_tx.state, 'done')
+
+    def test_apply_updates_keeps_source_authorized_after_partial_capture(self):
+        """ Test that a partial capture confirms the child but keeps the source authorized. """
+        source_tx = self._create_authorized_transaction()
+        capture_tx = source_tx._create_child_transaction(self.amount / 2)
+        payload = dict(self.capture_data, cart_amount=str(self.amount / 2))
+        capture_tx._apply_updates(payload)
+        self.assertEqual(capture_tx.state, 'done')
+        self.assertEqual(source_tx.state, 'authorized')
+
+    def test_apply_updates_matches_capture_on_previous_tran_ref(self):
+        """ Test that generic data referencing the source transaction confirms a capture. """
+        source_tx = self._create_authorized_transaction()
+        capture_tx = source_tx._create_child_transaction(self.amount)
+        payload = dict(self.capture_data, tran_type='Sale')
+        capture_tx._apply_updates(payload)
+        self.assertEqual(capture_tx.state, 'done')
+
+    def test_apply_updates_cancels_full_void(self):
+        """ Test that a full void cancels the child and the source transaction. """
+        source_tx = self._create_authorized_transaction()
+        void_tx = source_tx._create_child_transaction(self.amount)
+        void_tx._apply_updates(self.void_data)
+        self.assertEqual(void_tx.state, 'cancel')
+        self.assertEqual(void_tx.provider_reference, 'TST2016700000695')
+        self.assertEqual(source_tx.state, 'cancel')
+
+    def test_apply_updates_cancels_partial_void(self):
+        """ Test that a partial void cancels the child but keeps the source authorized. """
+        source_tx = self._create_authorized_transaction()
+        void_tx = source_tx._create_child_transaction(self.amount / 2)
+        payload = dict(self.void_data, cart_amount=str(self.amount / 2))
+        void_tx._apply_updates(payload)
+        self.assertEqual(void_tx.state, 'cancel')
+        self.assertEqual(source_tx.state, 'authorized')
+
+    @mute_logger('odoo.addons.payment_paytabs.models.payment_transaction')
+    def test_apply_updates_sets_failed_capture_in_error(self):
+        """ Test that a refused capture sets the child in error with the gateway reason logged. """
+        source_tx = self._create_authorized_transaction()
+        capture_tx = source_tx._create_child_transaction(self.amount)
+        with patch.object(
+            type(capture_tx), '_log_message_on_linked_documents'
+        ) as log_mock:
+            capture_tx._apply_updates(self.follow_up_error_data)
+        self.assertEqual(capture_tx.state, 'error')
+        self.assertIn("capture of the transaction", capture_tx.state_message)
+        self.assertIn("Previous transaction is on hold (120)", log_mock.call_args.args[0])
+        self.assertEqual(source_tx.state, 'authorized')
+
+    @mute_logger('odoo.addons.payment_paytabs.models.payment_transaction')
+    def test_apply_updates_sets_failed_void_in_error(self):
+        """ Test that a refused void sets the child in error. """
+        source_tx = self._create_authorized_transaction()
+        void_tx = source_tx._create_child_transaction(self.amount)
+        payload = dict(self.follow_up_error_data, tran_type='Void')
+        void_tx._apply_updates(payload)
+        self.assertEqual(void_tx.state, 'error')
+        self.assertIn("void of the transaction", void_tx.state_message)
+        self.assertEqual(source_tx.state, 'authorized')
 
     def test_apply_updates_processes_refund_data_on_refund_transaction(self):
         """ Test that refund data confirms a refund transaction. """
@@ -397,3 +494,91 @@ class TestPaymentTransaction(PayTabsCommon):
         self.assertEqual(refund_tx.state, 'error')
         self.assertIn("Refund not available", refund_tx.state_message)
         self.assertFalse(refund_tx.provider_reference)
+
+    def test_capture_request_targets_the_source_transaction(self):
+        """ Test that the capture request refers to the tran_ref of the source transaction. """
+        source_tx = self._create_authorized_transaction()
+
+        with patch(
+            'odoo.addons.payment.models.payment_provider.PaymentProvider._send_api_request',
+            return_value=self.capture_data,
+        ) as request_mock:
+            capture_tx = source_tx._capture()
+
+        payload = request_mock.call_args.kwargs['json']
+        self.assertEqual(payload['tran_type'], 'capture')
+        self.assertEqual(payload['tran_ref'], 'TST2016700000692')
+        self.assertEqual(payload['cart_id'], capture_tx.reference)
+        self.assertEqual(payload['cart_amount'], self.amount)
+        self.assertEqual(capture_tx.provider_reference, 'TST2016700000694')
+        self.assertEqual(capture_tx.state, 'done')
+        self.assertEqual(source_tx.state, 'done')
+
+    def test_partial_capture_request_sends_the_captured_amount(self):
+        """ Test that a partial capture only captures the requested amount. """
+        source_tx = self._create_authorized_transaction()
+        partial_amount = self.currency.round(self.amount / 2)
+        response = dict(self.capture_data, cart_amount=str(partial_amount))
+
+        with patch(
+            'odoo.addons.payment.models.payment_provider.PaymentProvider._send_api_request',
+            return_value=response,
+        ) as request_mock:
+            capture_tx = source_tx._capture(amount_to_capture=partial_amount)
+
+        self.assertEqual(request_mock.call_args.kwargs['json']['cart_amount'], partial_amount)
+        self.assertEqual(capture_tx.state, 'done')
+        self.assertEqual(source_tx.state, 'authorized')
+
+    def test_void_request_targets_the_source_transaction(self):
+        """ Test that the void request refers to the tran_ref of the source transaction. """
+        source_tx = self._create_authorized_transaction()
+
+        with patch(
+            'odoo.addons.payment.models.payment_provider.PaymentProvider._send_api_request',
+            return_value=self.void_data,
+        ) as request_mock:
+            void_tx = source_tx._void()
+
+        payload = request_mock.call_args.kwargs['json']
+        self.assertEqual(payload['tran_type'], 'void')
+        self.assertEqual(payload['tran_ref'], 'TST2016700000692')
+        self.assertEqual(payload['cart_amount'], self.amount)
+        self.assertEqual(void_tx.provider_reference, 'TST2016700000695')
+        self.assertEqual(void_tx.state, 'cancel')
+        self.assertEqual(source_tx.state, 'cancel')
+
+    def test_partial_void_request_sends_the_voided_amount(self):
+        """ Test that voiding part of the authorized amount still sends a void request. """
+        source_tx = self._create_authorized_transaction()
+        partial_amount = self.currency.round(self.amount / 2)
+        response = dict(self.void_data, cart_amount=str(partial_amount))
+
+        with patch(
+            'odoo.addons.payment.models.payment_provider.PaymentProvider._send_api_request',
+            return_value=response,
+        ) as request_mock:
+            void_tx = source_tx._void(amount_to_void=partial_amount)
+
+        payload = request_mock.call_args.kwargs['json']
+        self.assertEqual(payload['tran_type'], 'void')
+        self.assertEqual(payload['cart_amount'], partial_amount)
+        self.assertEqual(void_tx.state, 'cancel')
+        self.assertEqual(source_tx.state, 'authorized')
+
+    def test_capture_request_handles_business_errors(self):
+        """ Test that a capture rejected with an HTTP 200 response sets the child in error. """
+        source_tx = self._create_authorized_transaction()
+        error_data = {'code': 120, 'message': "Previous transaction is on hold"}
+
+        with patch(
+            'odoo.addons.payment.models.payment_provider.PaymentProvider._send_api_request',
+            return_value=error_data,
+        ):
+            capture_tx = source_tx._capture()
+
+        self.assertEqual(capture_tx.state, 'error')
+        self.assertIn("capture request was rejected", capture_tx.state_message)
+        self.assertIn("on hold", capture_tx.state_message)
+        self.assertFalse(capture_tx.provider_reference)
+        self.assertEqual(source_tx.state, 'authorized')

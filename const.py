@@ -30,6 +30,12 @@ API_URLS = {code: url for code, (_label, url) in REGIONS.items()}
 # The transaction types of follow-up operations performed against a prior transaction.
 FOLLOW_UP_TRAN_TYPES = ('refund', 'void', 'release', 'capture')
 
+# The transaction type of an authorization whose amount is captured later.
+AUTH_TRAN_TYPE = 'auth'
+
+# The transaction types PayTabs reports for the release of an authorized amount.
+VOID_TRAN_TYPES = ('void', 'release')
+
 # The codes of the payment methods to activate when PayTabs is activated.
 DEFAULT_PAYMENT_METHOD_CODES = {
     # Primary payment methods.
@@ -70,8 +76,9 @@ PAYMENT_STATUS_MAPPING = {
     'error': ('D', 'E', 'X'),
 }
 
-# The status of a transaction that was authorized but whose amount is held instead of captured.
-# Releasing the hold requires a manual capture or void, which this module does not support yet.
+# The status of a transaction that was authorized but whose amount is held by risk screening.
+# PayTabs refuses API follow-ups on a held transaction until the merchant clears the hold from the
+# dashboard, so the transaction cannot be captured or voided from Odoo.
 ON_HOLD_STATUS = 'H'
 
 # The keys of the payment data whose values must not be logged.

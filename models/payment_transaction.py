@@ -25,7 +25,8 @@ class PaymentTransaction(models.Model):
         The reference is sent as the cart ID, which PayTabs echoes back in the notifications and
         uses in its duplicate-request detection. The prefix is generated with 'tx' as default to
         keep the reference short and to prevent it from being based on document names that may
-        contain special characters (e.g. INV/2020/...).
+        contain special characters (e.g. INV/2020/...). Custom prefixes, such as the ones of child
+        transactions (`R-...`, `P-...`), are preserved.
 
         :param str provider_code: The code of the provider handling the transaction.
         :param str prefix: The custom prefix used to compute the full reference.
@@ -33,7 +34,7 @@ class PaymentTransaction(models.Model):
         :return: The unique reference for the transaction.
         :rtype: str
         """
-        if provider_code == 'paytabs':
+        if provider_code == 'paytabs' and not prefix:
             prefix = payment_utils.singularize_reference_prefix()
         return super()._compute_reference(
             provider_code, prefix=prefix, separator=separator, **kwargs
@@ -109,7 +110,8 @@ class PaymentTransaction(models.Model):
         }
         payload = {
             'profile_id': self.provider_id.paytabs_profile_id,
-            'tran_type': 'sale',
+            # An authorization holds the amount until it is captured or voided from Odoo.
+            'tran_type': const.AUTH_TRAN_TYPE if self.provider_id.capture_manually else 'sale',
             'tran_class': 'ecom',
             'cart_id': self.reference,
             'cart_currency': self.currency_id.name,
@@ -133,27 +135,66 @@ class PaymentTransaction(models.Model):
         if self.provider_code != 'paytabs':
             return super()._send_refund_request()
 
+        self._paytabs_send_follow_up_request(
+            'refund', _("Refund of %s", self.source_transaction_id.reference)
+        )
+
+    def _send_capture_request(self):
+        """ Override of `payment` to send a capture request to PayTabs. """
+        if self.provider_code != 'paytabs':
+            return super()._send_capture_request()
+
+        self._paytabs_send_follow_up_request(
+            'capture', _("Capture of %s", self.source_transaction_id.reference)
+        )
+
+    def _send_void_request(self):
+        """ Override of `payment` to send a void request to PayTabs. """
+        if self.provider_code != 'paytabs':
+            return super()._send_void_request()
+
+        # PayTabs accepts 'void' for both full and partial releases of the authorized amount.
+        self._paytabs_send_follow_up_request(
+            'void', _("Void of %s", self.source_transaction_id.reference)
+        )
+
+    def _paytabs_send_follow_up_request(self, tran_type, description):
+        """ Send a follow-up request on the source transaction and process the response.
+
+        Follow-ups (refund, capture, void, release) reference the source transaction and return
+        their result immediately, without customer interaction.
+
+        Note: `self.ensure_one()`
+
+        :param str tran_type: The PayTabs transaction type of the follow-up.
+        :param str description: The cart description of the follow-up.
+        :return: None
+        :raise ValidationError: If PayTabs rejected the request.
+        """
+        self.ensure_one()
+
         payload = {
             'profile_id': self.provider_id.paytabs_profile_id,
-            'tran_type': 'refund',
+            'tran_type': tran_type,
             'tran_class': 'ecom',
             'tran_ref': self.source_transaction_id.provider_reference,
             'cart_id': self.reference,
             'cart_currency': self.currency_id.name,
-            'cart_amount': -self.amount,  # The amount is negative for refund transactions.
-            'cart_description': _("Refund of %s", self.source_transaction_id.reference),
+            'cart_amount': abs(self.amount),  # The amount is negative for refund transactions.
+            'cart_description': description,
         }
         payment_data = self._send_api_request('POST', 'payment/request', json=payload)
 
         # PayTabs reports business errors with an HTTP 200 status and no payment result.
         if not payment_data.get('payment_result'):
             raise ValidationError("PayTabs: " + _(
-                "The refund request was rejected. Reason: %(message)s (code %(code)s)",
+                "The %(tran_type)s request was rejected. Reason: %(message)s (code %(code)s)",
+                tran_type=tran_type,
                 message=payment_data.get('message'),
                 code=payment_data.get('code'),
             ))
 
-        # The refund is assigned its own transaction reference on PayTabs' side.
+        # The follow-up is assigned its own transaction reference on PayTabs' side.
         self.provider_reference = payment_data.get('tran_ref')
         self._process('paytabs', payment_data)
 
@@ -188,16 +229,16 @@ class PaymentTransaction(models.Model):
         if self.provider_code != 'paytabs':
             return super()._apply_updates(payment_data)
 
-        # Ensure that the transaction type matches the operation. Redirect data doesn't carry the
-        # transaction type, in which case the check is skipped. As PayTabs may report a generic
-        # transaction type for follow-ups, refund data is also matched on `previous_tran_ref`, which
-        # references the source transaction.
-        tran_type = payment_data.get('tran_type')
+        # Ensure that the transaction type matches the transaction. Redirect data doesn't carry the
+        # transaction type, in which case the check is skipped. Child transactions (refund, capture,
+        # void) expect follow-up data; as PayTabs may report a generic transaction type for
+        # follow-ups, the data is also matched on `previous_tran_ref`, which references the source
+        # transaction. Source transactions ignore follow-up data.
+        tran_type = (payment_data.get('tran_type') or '').lower()
         if tran_type:
-            tran_type = tran_type.lower()
-            if self.operation == 'refund':
+            if self.source_transaction_id:
                 previous_tran_ref = payment_data.get('previous_tran_ref')
-                mismatch = tran_type != 'refund' and not (
+                mismatch = tran_type not in const.FOLLOW_UP_TRAN_TYPES and not (
                     previous_tran_ref
                     and previous_tran_ref == self.source_transaction_id.provider_reference
                 )
@@ -226,7 +267,12 @@ class PaymentTransaction(models.Model):
         if payment_status in const.PAYMENT_STATUS_MAPPING['pending']:
             self._set_pending()
         elif payment_status in const.PAYMENT_STATUS_MAPPING['done']:
-            self._set_done()
+            if tran_type == const.AUTH_TRAN_TYPE and not self.source_transaction_id:
+                self._set_authorized()  # The amount is held until it is captured or voided.
+            elif tran_type in const.VOID_TRAN_TYPES and self.source_transaction_id:
+                self._set_canceled()  # The void or release child succeeded.
+            else:
+                self._set_done()
         elif payment_status in const.PAYMENT_STATUS_MAPPING['cancel']:
             self._set_canceled()
         elif payment_status in const.PAYMENT_STATUS_MAPPING['error']:
@@ -238,10 +284,19 @@ class PaymentTransaction(models.Model):
                 "The transaction %s underwent an error. Reason: %s (%s)",
                 self.reference, response_message, response_code,
             )
-            # Keep the customer-facing message generic; the gateway's reason goes to the chatter.
-            self._set_error(_(
-                "An error occurred during the processing of your payment. Please try again."
-            ))
+            if self._paytabs_is_capture_or_void_child():
+                # Capture and void children are only seen by internal users.
+                if tran_type in const.VOID_TRAN_TYPES:
+                    self._set_error(_("The void of the transaction %s failed.", self.reference))
+                else:
+                    self._set_error(
+                        _("The capture of the transaction %s failed.", self.reference)
+                    )
+            else:
+                # Keep the customer-facing message generic; the gateway's reason goes to the chatter.
+                self._set_error(_(
+                    "An error occurred during the processing of your payment. Please try again."
+                ))
             self._paytabs_log_decline_reason(payment_status, response_code, response_message)
         elif payment_status == const.ON_HOLD_STATUS:
             _logger.warning(
@@ -251,8 +306,10 @@ class PaymentTransaction(models.Model):
                 "Your payment could not be completed. Please contact us or try again."
             ))
             self._log_message_on_linked_documents(_(
-                "PayTabs authorized the transaction %(ref)s but put the amount on hold (status H). "
-                "Manual capture is not supported; capture or void it from the PayTabs dashboard.",
+                "PayTabs authorized the transaction %(ref)s but its risk screening put the amount"
+                " on hold (status H). PayTabs refuses captures and voids sent from Odoo while the"
+                " hold lasts; review the transaction in the PayTabs dashboard and capture or void"
+                " it from there.",
                 ref=self._get_html_link(),
             ))
         else:  # Classify unsupported payment status as the `error` tx state.
@@ -266,6 +323,18 @@ class PaymentTransaction(models.Model):
         # not be triggered by a customer browsing the transaction from the portal.
         if self.operation == 'refund':
             self.env.ref('payment.cron_post_process_payment_tx')._trigger()
+
+    def _paytabs_is_capture_or_void_child(self):
+        """ Return whether the transaction is a child created by a capture or a void.
+
+        Capture and void children share the operation of their source transaction, unlike refund
+        children whose operation is 'refund'.
+
+        :return: Whether the transaction is a capture or void child.
+        :rtype: bool
+        """
+        self.ensure_one()
+        return bool(self.source_transaction_id) and self.operation != 'refund'
 
     def _paytabs_log_decline_reason(self, payment_status, response_code, response_message):
         """ Log PayTabs' decline reason on the documents linked to the transaction.
@@ -287,9 +356,15 @@ class PaymentTransaction(models.Model):
         reason = response_message or _("No reason provided")
         if response_code:
             reason = f'{reason} ({response_code})'
+        if self.operation == 'refund':
+            tx_label = _("refund")
+        elif self._paytabs_is_capture_or_void_child():
+            tx_label = _("capture or void")
+        else:
+            tx_label = _("transaction")
         message = _(
             "PayTabs reported the %(tx_label)s %(ref)s as %(status)s. Reason: %(reason)s",
-            tx_label=_("refund") if self.operation == 'refund' else _("transaction"),
+            tx_label=tx_label,
             ref=self._get_html_link(),
             status=status_labels.get(payment_status, payment_status),
             reason=reason,
