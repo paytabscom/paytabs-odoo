@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="payment_provider_form" model="ir.ui.view">
+        <field name="name">PayTabs Provider Form</field>
+        <field name="model">payment.provider</field>
+        <field name="inherit_id" ref="payment.payment_provider_form"/>
+        <field name="arch" type="xml">
+            <group name="provider_credentials" position="inside">
+                <group invisible="code != 'paytabs'">
+                    <field
+                        name="paytabs_region"
+                        string="Region"
+                        required="code == 'paytabs' and state != 'disabled'"
+                    />
+                    <field
+                        name="paytabs_profile_id"
+                        string="Profile ID"
+                        options="{'enable_formatting': False}"
+                        required="code == 'paytabs' and state != 'disabled'"
+                    />
+                    <field
+                        name="paytabs_server_key"
+                        string="Server Key"
+                        password="True"
+                        required="code == 'paytabs' and state != 'disabled'"
+                    />
+                </group>
+            </group>
+            <group name="provider_config" position="inside">
+                <group string="PayTabs" name="paytabs_config" invisible="code != 'paytabs'">
+                    <field name="paytabs_hide_shipping"/>
+                    <field name="paytabs_card_label" placeholder="Card"/>
+                </group>
+                <group string="PayTabs: Tunnel (Development)" name="paytabs_tunnel" invisible="code != 'paytabs'">
+                    <field name="paytabs_tunnel_url" string="URL" placeholder="https://xxxx.ngrok-free.app"/>
+                    <field name="paytabs_tunnel_callback" string="Tunnel Callback" invisible="not paytabs_tunnel_url"/>
+                    <field name="paytabs_tunnel_return" string="Tunnel Return" invisible="not paytabs_tunnel_url"/>
+                </group>
+            </group>
+        </field>
+    </record>
+
+</odoo>

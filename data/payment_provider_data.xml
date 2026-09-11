@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <record id="payment_provider_paytabs" model="payment.provider">
+        <field name="name">PayTabs</field>
+        <field name="code">paytabs</field>
+        <field name="module_id" ref="base.module_payment_paytabs"/>
+        <field name="image_128" type="base64" file="payment_paytabs/static/description/icon.png"/>
+        <field name="redirect_form_view_id" ref="redirect_form"/>
+        <!-- The payment methods available depend on the region and on the PayTabs profile; card is
+             common to all. See https://site.paytabs.com/en/payment-methods/ -->
+        <field name="payment_method_ids"
+               eval="[Command.set([
+                         ref('payment.payment_method_aman'),
+                         ref('payment.payment_method_card'),
+                         ref('payment.payment_method_forsa'),
+                         ref('payment.payment_method_halan'),
+                         ref('payment.payment_method_installments_eg'),
+                         ref('payment.payment_method_knet'),
+                         ref('payment.payment_method_mada'),
+                         ref('payment.payment_method_paypal'),
+                         ref('payment.payment_method_samsung_pay'),
+                         ref('payment.payment_method_souhoola'),
+                         ref('payment.payment_method_stcpay'),
+                         ref('payment.payment_method_tabby'),
+                         ref('payment.payment_method_tamara'),
+                         ref('payment.payment_method_valu'),
+                     ])]"
+        />
+    </record>
+
+</odoo>

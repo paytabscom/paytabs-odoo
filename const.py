@@ -1,0 +1,79 @@
+# Part of Odoo. See LICENSE file for full copyright and licensing details.
+
+from odoo.addons.payment.const import SENSITIVE_KEYS as PAYMENT_SENSITIVE_KEYS
+
+# The supported PayTabs regions, mapped to their display label and API base URL.
+# Test and live profiles share the same endpoint; only the profile ID differs. A profile only
+# authenticates against the host it was issued for.
+REGIONS = {
+    'ARE': ("United Arab Emirates", 'https://secure.paytabs.com'),
+    'SAU': ("Saudi Arabia", 'https://secure.paytabs.sa'),
+    'EGY': ("Egypt", 'https://secure-egypt.paytabs.com'),
+    'OMN': ("Oman", 'https://secure-oman.paytabs.com'),
+    'JOR': ("Jordan", 'https://secure-jordan.paytabs.com'),
+    'KWT': ("Kuwait", 'https://secure-kuwait.paytabs.com'),
+    'QAT': ("Qatar", 'https://secure-doha.paytabs.com'),
+    'IRQ': ("Iraq", 'https://secure-iraq.paytabs.com'),
+    'MAR': ("Morocco", 'https://secure-morocco.paytabs.com'),
+    'GLOBAL': ("Global", 'https://secure-global.paytabs.com'),
+    'MADFOAT': ("Madfoat", 'https://madfoat-secure.paytabs.com'),
+    'CUZDAN': ("Cuzdan", 'https://secure.cuzdan.az'),
+    'DEMO': ("Demo", 'https://paypage.paytabs.com'),
+}
+
+# The selection values of the `paytabs_region` field.
+REGION_SELECTION = [(code, label) for code, (label, _url) in REGIONS.items()]
+
+# The base URL of the PayTabs API for each supported region.
+API_URLS = {code: url for code, (_label, url) in REGIONS.items()}
+
+# The transaction types of follow-up operations performed against a prior transaction.
+FOLLOW_UP_TRAN_TYPES = ('refund', 'void', 'release', 'capture')
+
+# The codes of the payment methods to activate when PayTabs is activated.
+DEFAULT_PAYMENT_METHOD_CODES = {
+    # Primary payment methods.
+    'card',
+    # Brand payment methods.
+    'visa',
+    'mastercard',
+    'amex',
+    'meeza',
+    'unionpay',
+}
+
+# Mapping of payment method codes to PayTabs codes, for the `payment_methods` request parameter.
+# Only alternative payment methods are mapped; card payments leave the payment page unrestricted so
+# that every card scheme enabled on the profile is offered.
+PAYMENT_METHODS_MAPPING = {
+    'aman': 'aman',
+    'forsa': 'forsa',
+    'halan': 'halan',
+    'installments_eg': 'installment',
+    'knet': 'knet',
+    'mada': 'mada',
+    'paypal': 'paypal',
+    'samsung_pay': 'samsungpay',
+    'souhoola': 'souhoola',
+    'stcpay': 'stcpay',
+    'tabby': 'tabby',
+    'tamara': 'tamara',
+    'valu': 'valu',
+}
+
+# Mapping of transaction states to PayTabs' response statuses.
+# See https://support.paytabs.com/en/support/solutions/articles/60000711358.
+PAYMENT_STATUS_MAPPING = {
+    'pending': ('P',),  # Awaiting an offline payment or a refund settlement.
+    'done': ('A',),
+    'cancel': ('C', 'V'),
+    'error': ('D', 'E', 'X'),
+}
+
+# The status of a transaction that was authorized but whose amount is held instead of captured.
+# Releasing the hold requires a manual capture or void, which this module does not support yet.
+ON_HOLD_STATUS = 'H'
+
+# The keys of the payment data whose values must not be logged.
+SENSITIVE_KEYS = {'signature', 'profile_id', 'server-key', 'token'}
+PAYMENT_SENSITIVE_KEYS.update(SENSITIVE_KEYS)  # Add PayTabs-specific keys to the global set.
