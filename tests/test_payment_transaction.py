@@ -31,6 +31,13 @@ class TestPaymentTransaction(PayTabsCommon):
         self.assertTrue(payload['return'].endswith('/payment/paytabs/return'))
         self.assertTrue(payload['callback'].endswith('/payment/paytabs/webhook'))
 
+    def test_paypage_payload_selects_a_supported_language(self):
+        """ Test that the payment page language is Arabic for Arabic partners, English otherwise. """
+        tx = self._create_transaction('redirect')
+        for lang, expected in (('ar_001', 'ar'), ('ar_SY', 'ar'), ('fr_FR', 'en'), (False, 'en')):
+            tx.partner_lang = lang
+            self.assertEqual(tx._paytabs_prepare_paypage_payload()['paypage_lang'], expected)
+
     def test_paypage_payload_leaves_card_payments_unrestricted(self):
         """ Test that no `payment_methods` restriction is sent for card payments. """
         tx = self._create_transaction('redirect')
@@ -373,3 +380,20 @@ class TestPaymentTransaction(PayTabsCommon):
         self.assertEqual(payload['cart_amount'], self.amount)  # Sent as a positive amount.
         self.assertEqual(refund_tx.provider_reference, 'TST2016700000693')
         self.assertEqual(refund_tx.state, 'done')
+
+    def test_refund_request_handles_business_errors(self):
+        """ Test that a refund rejected with an HTTP 200 response sets the refund in error. """
+        source_tx = self._create_transaction(
+            'redirect', state='done', provider_reference='TST2016700000692'
+        )
+        error_data = {'code': 322, 'message': "Refund not available for this transaction"}
+
+        with patch(
+            'odoo.addons.payment.models.payment_provider.PaymentProvider._send_api_request',
+            return_value=error_data,
+        ):
+            refund_tx = source_tx._refund()
+
+        self.assertEqual(refund_tx.state, 'error')
+        self.assertIn("Refund not available", refund_tx.state_message)
+        self.assertFalse(refund_tx.provider_reference)

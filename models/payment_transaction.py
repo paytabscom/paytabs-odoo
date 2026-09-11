@@ -22,9 +22,10 @@ class PaymentTransaction(models.Model):
     def _compute_reference(self, provider_code, prefix=None, separator='-', **kwargs):
         """ Override of `payment` to ensure that PayTabs' requirements for references are satisfied.
 
-        PayTabs requires the cart ID to be made of alphanumeric characters and/or '-' and '_'. The
-        prefix is generated with 'tx' as default to prevent it from being based on document names
-        that may contain forbidden characters (e.g. INV/2020/...).
+        The reference is sent as the cart ID, which PayTabs echoes back in the notifications and
+        uses in its duplicate-request detection. The prefix is generated with 'tx' as default to
+        keep the reference short and to prevent it from being based on document names that may
+        contain special characters (e.g. INV/2020/...).
 
         :param str provider_code: The code of the provider handling the transaction.
         :param str prefix: The custom prefix used to compute the full reference.
@@ -114,7 +115,8 @@ class PaymentTransaction(models.Model):
             'cart_currency': self.currency_id.name,
             'cart_amount': self.amount,  # PayTabs expects amounts in major units.
             'cart_description': self.reference,
-            'paypage_lang': (self.partner_lang or 'en')[:2],
+            # The payment page is only available in English and Arabic.
+            'paypage_lang': 'ar' if (self.partner_lang or '').startswith('ar') else 'en',
             'customer_details': {k: v for k, v in customer_details.items() if v},
             'hide_shipping': self.provider_id.paytabs_hide_shipping,
             'return': urls.urljoin(return_base_url, PayTabsController._return_url),
@@ -142,6 +144,14 @@ class PaymentTransaction(models.Model):
             'cart_description': _("Refund of %s", self.source_transaction_id.reference),
         }
         payment_data = self._send_api_request('POST', 'payment/request', json=payload)
+
+        # PayTabs reports business errors with an HTTP 200 status and no payment result.
+        if not payment_data.get('payment_result'):
+            raise ValidationError("PayTabs: " + _(
+                "The refund request was rejected. Reason: %(message)s (code %(code)s)",
+                message=payment_data.get('message'),
+                code=payment_data.get('code'),
+            ))
 
         # The refund is assigned its own transaction reference on PayTabs' side.
         self.provider_reference = payment_data.get('tran_ref')

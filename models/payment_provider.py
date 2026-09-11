@@ -121,8 +121,6 @@ class PaymentProvider(models.Model):
             self.paytabs_server_key.encode(), msg=signing_string, digestmod=hashlib.sha256
         ).hexdigest()
 
-    # === BUSINESS METHODS === #
-
     def _paytabs_get_public_base_url(self, url_type):
         """ Return the base URL to embed in the `return` or `callback` URL.
 

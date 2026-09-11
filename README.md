@@ -165,9 +165,5 @@ with the `signature` header) and rejected if the signature does not match.
 
 ## Module History
 
-- `1.0`
-  - The first version of the module is merged.
-
----
-
-Done
+- `19.0.1.0.0`
+  - The first version of the module is released.
