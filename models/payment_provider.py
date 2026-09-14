@@ -150,7 +150,7 @@ class PaymentProvider(models.Model):
         :rtype: dict
         """
         return {
-            'cart_name': 'Odoo',
+            'cart_name': 'odoo',  # Platform name registered on the PayTabs side; not free text.
             'cart_version': release.version,
             'plugin_version': self.env.ref('base.module_payment_paytabs').installed_version,
         }
