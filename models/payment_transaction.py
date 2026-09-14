@@ -1,4 +1,4 @@
-# Part of Odoo. See LICENSE file for full copyright and licensing details.
+# Copyright (C) PayTabs. Licensed under LGPL-3; see the LICENSE file for details.
 
 from urllib.parse import parse_qsl, urlsplit
 
