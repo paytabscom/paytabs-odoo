@@ -9,14 +9,14 @@ from odoo.tests import tagged
 from odoo.tools import mute_logger
 
 from odoo.addons.payment.tests.http_common import PaymentHttpCommon
-from odoo.addons.payment_paytabs.controllers.main import PayTabsController
-from odoo.addons.payment_paytabs.tests.common import PayTabsCommon
+from odoo.addons.payment_paytabs_official.controllers.main import PayTabsController
+from odoo.addons.payment_paytabs_official.tests.common import PayTabsCommon
 
 
 @tagged('post_install', '-at_install')
 class TestProcessingFlows(PayTabsCommon, PaymentHttpCommon):
 
-    @mute_logger('odoo.addons.payment_paytabs.controllers.main')
+    @mute_logger('odoo.addons.payment_paytabs_official.controllers.main')
     def test_redirect_notification_does_not_trigger_processing(self):
         """ Test that the return route never processes the transaction. """
         self._create_transaction('redirect')
@@ -27,31 +27,31 @@ class TestProcessingFlows(PayTabsCommon, PaymentHttpCommon):
             self._make_http_post_request(url, data=self.return_data)
         self.assertEqual(process_mock.call_count, 0)
 
-    @mute_logger('odoo.addons.payment_paytabs.controllers.main')
+    @mute_logger('odoo.addons.payment_paytabs_official.controllers.main')
     def test_redirect_notification_does_not_trigger_signature_check(self):
         """ Test that the return route does not verify signatures, as it does not process. """
         self._create_transaction('redirect')
         url = self._build_url(PayTabsController._return_url)
         with patch(
-            'odoo.addons.payment_paytabs.controllers.main.PayTabsController._verify_signature'
+            'odoo.addons.payment_paytabs_official.controllers.main.PayTabsController._verify_signature'
         ) as signature_check_mock:
             self._make_http_post_request(url, data=self.return_data)
         self.assertEqual(signature_check_mock.call_count, 0)
 
-    @mute_logger('odoo.addons.payment_paytabs.controllers.main')
+    @mute_logger('odoo.addons.payment_paytabs_official.controllers.main')
     def test_webhook_notification_triggers_processing(self):
         """ Test that receiving a valid webhook notification triggers the processing. """
         self._create_transaction('redirect')
         url = self._build_url(PayTabsController._webhook_url)
         with patch(
-            'odoo.addons.payment_paytabs.controllers.main.PayTabsController._verify_signature'
+            'odoo.addons.payment_paytabs_official.controllers.main.PayTabsController._verify_signature'
         ), patch(
             'odoo.addons.payment.models.payment_transaction.PaymentTransaction._process'
         ) as process_mock:
             self._make_json_request(url, data=self.webhook_data)
         self.assertEqual(process_mock.call_count, 1)
 
-    @mute_logger('odoo.addons.payment_paytabs.controllers.main')
+    @mute_logger('odoo.addons.payment_paytabs_official.controllers.main')
     def test_webhook_notification_triggers_signature_check(self):
         """ Test that receiving a webhook notification triggers a signature check. """
         self._create_transaction('redirect')
@@ -59,7 +59,7 @@ class TestProcessingFlows(PayTabsCommon, PaymentHttpCommon):
         with patch(
             'odoo.addons.payment.models.payment_transaction.PaymentTransaction._process'
         ), patch(
-            'odoo.addons.payment_paytabs.controllers.main.PayTabsController._verify_signature'
+            'odoo.addons.payment_paytabs_official.controllers.main.PayTabsController._verify_signature'
         ) as signature_check_mock:
             self._make_json_request(url, data=self.webhook_data)
         self.assertEqual(signature_check_mock.call_count, 1)
@@ -79,7 +79,7 @@ class TestProcessingFlows(PayTabsCommon, PaymentHttpCommon):
         self.assertEqual(tx.state, 'done')
         self.assertEqual(tx.provider_reference, self.webhook_data['tran_ref'])
 
-    @mute_logger('odoo.addons.payment_paytabs.controllers.main')
+    @mute_logger('odoo.addons.payment_paytabs_official.controllers.main')
     def test_webhook_notification_with_invalid_signature_is_rejected(self):
         """ Test that a webhook notification with a bad signature header returns 403. """
         tx = self._create_transaction('redirect')
@@ -93,7 +93,7 @@ class TestProcessingFlows(PayTabsCommon, PaymentHttpCommon):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(tx.state, 'draft')
 
-    @mute_logger('odoo.addons.payment_paytabs.controllers.main')
+    @mute_logger('odoo.addons.payment_paytabs_official.controllers.main')
     def test_webhook_notification_without_signature_header_is_rejected(self):
         """ Test that a webhook notification without a signature header returns 403. """
         tx = self._create_transaction('redirect')
@@ -102,7 +102,7 @@ class TestProcessingFlows(PayTabsCommon, PaymentHttpCommon):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(tx.state, 'draft')
 
-    @mute_logger('odoo.addons.payment_paytabs.controllers.main')
+    @mute_logger('odoo.addons.payment_paytabs_official.controllers.main')
     def test_webhook_notification_without_profile_id_is_rejected(self):
         """ Test that a correctly signed webhook notification without profile ID returns 403. """
         tx = self._create_transaction('redirect')
@@ -118,7 +118,7 @@ class TestProcessingFlows(PayTabsCommon, PaymentHttpCommon):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(tx.state, 'draft')
 
-    @mute_logger('odoo.addons.payment_paytabs.controllers.main')
+    @mute_logger('odoo.addons.payment_paytabs_official.controllers.main')
     def test_webhook_notification_for_another_profile_is_rejected(self):
         """ Test that a correctly signed webhook notification for another profile returns 403. """
         tx = self._create_transaction('redirect')
@@ -133,7 +133,7 @@ class TestProcessingFlows(PayTabsCommon, PaymentHttpCommon):
         self.assertEqual(response.status_code, 403)
         self.assertEqual(tx.state, 'draft')
 
-    @mute_logger('odoo.addons.payment_paytabs.controllers.main')
+    @mute_logger('odoo.addons.payment_paytabs_official.controllers.main')
     def test_webhook_notification_with_malformed_body_is_rejected(self):
         """ Test that a webhook notification with a non-JSON body returns 403. """
         url = self._build_url(PayTabsController._webhook_url)
@@ -142,7 +142,7 @@ class TestProcessingFlows(PayTabsCommon, PaymentHttpCommon):
         )
         self.assertEqual(response.status_code, 403)
 
-    @mute_logger('odoo.addons.payment_paytabs.controllers.main')
+    @mute_logger('odoo.addons.payment_paytabs_official.controllers.main')
     def test_webhook_notification_for_unknown_transaction_is_acknowledged(self):
         """ Test that a webhook notification for an unknown cart ID is acknowledged with 200. """
         url = self._build_url(PayTabsController._webhook_url)
@@ -180,7 +180,7 @@ class TestProcessingFlows(PayTabsCommon, PaymentHttpCommon):
         self.assertEqual(capture_tx.provider_reference, 'TST2016700000694')
         self.assertEqual(source_tx.state, 'done')
 
-    @mute_logger('odoo.addons.payment_paytabs.controllers.main')
+    @mute_logger('odoo.addons.payment_paytabs_official.controllers.main')
     def test_redirect_notification_only_redirects_to_status_page(self):
         """ Test that signed return data redirects to the status page without updating the tx. """
         tx = self._create_transaction('redirect')
@@ -192,7 +192,7 @@ class TestProcessingFlows(PayTabsCommon, PaymentHttpCommon):
         self.assertTrue(response.url.endswith('/payment/status'))
         self.assertEqual(tx.state, 'draft')  # Only the webhook updates the transaction.
 
-    @mute_logger('odoo.addons.payment_paytabs.controllers.main')
+    @mute_logger('odoo.addons.payment_paytabs_official.controllers.main')
     def test_redirect_without_data_redirects_to_status_page(self):
         """ Test that a bare GET return (plain HTTP return URL) redirects to the status page. """
         tx = self._create_transaction('redirect')
@@ -213,7 +213,7 @@ class TestProcessingFlows(PayTabsCommon, PaymentHttpCommon):
             tx,
         )
 
-    @mute_logger('odoo.addons.payment_paytabs.controllers.main')
+    @mute_logger('odoo.addons.payment_paytabs_official.controllers.main')
     def test_reject_notification_with_missing_signature(self):
         """ Test the verification of a notification with a missing signature. """
         tx = self._create_transaction('redirect')
@@ -221,7 +221,7 @@ class TestProcessingFlows(PayTabsCommon, PaymentHttpCommon):
             Forbidden, PayTabsController._verify_signature, self.return_data, None, tx
         )
 
-    @mute_logger('odoo.addons.payment_paytabs.controllers.main')
+    @mute_logger('odoo.addons.payment_paytabs_official.controllers.main')
     def test_reject_notification_with_invalid_signature(self):
         """ Test the verification of a notification with an invalid signature. """
         tx = self._create_transaction('redirect')
@@ -229,7 +229,7 @@ class TestProcessingFlows(PayTabsCommon, PaymentHttpCommon):
             Forbidden, PayTabsController._verify_signature, self.return_data, 'dummy', tx
         )
 
-    @mute_logger('odoo.addons.payment_paytabs.controllers.main')
+    @mute_logger('odoo.addons.payment_paytabs_official.controllers.main')
     def test_reject_tampered_redirect_notification(self):
         """ Test that altering the payment status invalidates the signature. """
         tx = self._create_transaction('redirect')
@@ -259,14 +259,14 @@ class TestProcessingFlows(PayTabsCommon, PaymentHttpCommon):
             tx,
         )
 
-    @mute_logger('odoo.addons.payment_paytabs.controllers.main')
+    @mute_logger('odoo.addons.payment_paytabs_official.controllers.main')
     def test_reject_webhook_data_without_profile_id(self):
         """ Test that webhook data is rejected when the required profile ID is missing. """
         tx = self._create_transaction('redirect')
         data = {k: v for k, v in self.webhook_data.items() if k != 'profile_id'}
         self.assertRaises(Forbidden, PayTabsController._verify_profile, data, tx, True)
 
-    @mute_logger('odoo.addons.payment_paytabs.controllers.main')
+    @mute_logger('odoo.addons.payment_paytabs_official.controllers.main')
     def test_reject_data_for_another_profile(self):
         """ Test that data for another profile is rejected in both payload shapes. """
         tx = self._create_transaction('redirect')

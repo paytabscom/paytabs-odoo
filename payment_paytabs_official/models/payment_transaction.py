@@ -8,8 +8,8 @@ from odoo.tools import urls
 
 from odoo.addons.payment import utils as payment_utils
 from odoo.addons.payment.logging import get_payment_logger
-from odoo.addons.payment_paytabs import const
-from odoo.addons.payment_paytabs.controllers.main import PayTabsController
+from odoo.addons.payment_paytabs_official import const
+from odoo.addons.payment_paytabs_official.controllers.main import PayTabsController
 
 
 _logger = get_payment_logger(__name__, const.SENSITIVE_KEYS)

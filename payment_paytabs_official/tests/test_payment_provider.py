@@ -9,8 +9,8 @@ from odoo.fields import Command
 from odoo.tests import tagged
 from odoo.tools import is_html_empty
 
-from odoo.addons.payment_paytabs import const
-from odoo.addons.payment_paytabs.tests.common import PayTabsCommon
+from odoo.addons.payment_paytabs_official import const
+from odoo.addons.payment_paytabs_official.tests.common import PayTabsCommon
 
 
 @tagged('post_install', '-at_install')

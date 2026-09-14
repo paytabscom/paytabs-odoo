@@ -18,7 +18,7 @@ Installation
 ============
 
 #. Download the latest release of the module.
-#. Copy the folder ``payment_paytabs`` into one of the directories listed in the ``addons_path``
+#. Copy the folder ``payment_paytabs_official`` into one of the directories listed in the ``addons_path``
    of your Odoo configuration file (e.g. ``/mnt/extra-addons/``).
 #. Restart the Odoo server.
 #. Go to *Apps*, click *Update Apps List* (developer mode must be active).
@@ -26,7 +26,7 @@ Installation
 
 Or from the command line::
 
-    odoo -c /etc/odoo/odoo.conf -d <database> -i payment_paytabs --stop-after-init
+    odoo -c /etc/odoo/odoo.conf -d <database> -i payment_paytabs_official --stop-after-init
 
 Configuration
 =============
@@ -169,7 +169,7 @@ Logs
 ====
 
 All requests, responses and notifications are written to the Odoo server log under the
-``odoo.addons.payment_paytabs`` logger, with the server key and signatures masked.
+``odoo.addons.payment_paytabs_official`` logger, with the server key and signatures masked.
 
 Technical Details
 =================

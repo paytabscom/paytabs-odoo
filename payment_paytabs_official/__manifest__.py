@@ -11,9 +11,9 @@
     'images': ['static/description/main_screenshot.gif'],
     'data': [
         'views/payment_provider_views.xml',
-        'views/payment_paytabs_templates.xml',
+        'views/payment_paytabs_official_templates.xml',
 
-        'data/payment_provider_data.xml',  # Depends on views/payment_paytabs_templates.xml
+        'data/payment_provider_data.xml',  # Depends on views/payment_paytabs_official_templates.xml
     ],
     'post_init_hook': 'post_init_hook',
     'uninstall_hook': 'uninstall_hook',

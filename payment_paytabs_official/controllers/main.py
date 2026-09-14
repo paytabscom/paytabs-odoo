@@ -9,7 +9,7 @@ from odoo import http
 from odoo.http import request
 
 from odoo.addons.payment.logging import get_payment_logger
-from odoo.addons.payment_paytabs import const
+from odoo.addons.payment_paytabs_official import const
 
 
 _logger = get_payment_logger(__name__, const.SENSITIVE_KEYS)
