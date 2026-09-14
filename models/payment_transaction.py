@@ -123,6 +123,7 @@ class PaymentTransaction(models.Model):
             'hide_shipping': self.provider_id.paytabs_hide_shipping,
             'return': urls.urljoin(return_base_url, PayTabsController._return_url),
             'callback': urls.urljoin(callback_base_url, PayTabsController._webhook_url),
+            'plugin_info': self.provider_id._paytabs_get_plugin_info(),
         }
         # Restrict the payment page to the alternative payment method selected at checkout.
         paytabs_method_code = const.PAYMENT_METHODS_MAPPING.get(self.payment_method_code)
@@ -182,6 +183,7 @@ class PaymentTransaction(models.Model):
             'cart_currency': self.currency_id.name,
             'cart_amount': abs(self.amount),  # The amount is negative for refund transactions.
             'cart_description': description,
+            'plugin_info': self.provider_id._paytabs_get_plugin_info(),
         }
         payment_data = self._send_api_request('POST', 'payment/request', json=payload)
 

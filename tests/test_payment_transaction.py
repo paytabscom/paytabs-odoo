@@ -30,6 +30,9 @@ class TestPaymentTransaction(PayTabsCommon):
         self.assertEqual(payload['cart_amount'], tx.amount)  # Amounts are in major units.
         self.assertTrue(payload['return'].endswith('/payment/paytabs/return'))
         self.assertTrue(payload['callback'].endswith('/payment/paytabs/webhook'))
+        self.assertEqual(payload['plugin_info']['cart_name'], 'Odoo')
+        self.assertTrue(payload['plugin_info']['cart_version'].startswith('19.0'))
+        self.assertEqual(payload['plugin_info']['plugin_version'], '19.0.1.0.0')
 
     def test_paypage_payload_requests_an_authorization_when_capturing_manually(self):
         """ Test that the payment page authorizes instead of selling when capture is manual. """
@@ -492,6 +495,7 @@ class TestPaymentTransaction(PayTabsCommon):
         self.assertEqual(payload['tran_type'], 'refund')
         self.assertEqual(payload['tran_ref'], 'TST2016700000692')
         self.assertEqual(payload['cart_amount'], self.amount)  # Sent as a positive amount.
+        self.assertEqual(payload['plugin_info']['cart_name'], 'Odoo')
         self.assertEqual(refund_tx.provider_reference, 'TST2016700000693')
         self.assertEqual(refund_tx.state, 'done')
 

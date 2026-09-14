@@ -4,7 +4,7 @@ import hashlib
 import hmac
 from urllib.parse import quote_plus
 
-from odoo import fields, models
+from odoo import fields, models, release
 
 from odoo.addons.payment_paytabs import const
 
@@ -142,6 +142,18 @@ class PaymentProvider(models.Model):
         }[url_type]
         base_url = self.paytabs_tunnel_url if use_tunnel and self.paytabs_tunnel_url else None
         return (base_url or self.get_base_url()).strip().rstrip('/')
+
+    def _paytabs_get_plugin_info(self):
+        """ Return the `plugin_info` payload identifying the integration to PayTabs.
+
+        :return: The plugin info with the platform name and version and the module version.
+        :rtype: dict
+        """
+        return {
+            'cart_name': 'Odoo',
+            'cart_version': release.version,
+            'plugin_version': self.env.ref('base.module_payment_paytabs').installed_version,
+        }
 
     # === REQUEST HELPERS === #
 
