@@ -97,6 +97,8 @@ class PaymentTransaction(models.Model):
 
         return_base_url = self.provider_id._paytabs_get_public_base_url('return')
         callback_base_url = self.provider_id._paytabs_get_public_base_url('callback')
+        # The language the customer is browsing in takes precedence over the partner's preference.
+        lang = self.env.lang or self.partner_lang or ''
         customer_details = {
             'name': self.partner_name,
             'email': self.partner_email,
@@ -118,7 +120,7 @@ class PaymentTransaction(models.Model):
             'cart_amount': self.amount,  # PayTabs expects amounts in major units.
             'cart_description': self.reference,
             # The payment page is only available in English and Arabic.
-            'paypage_lang': 'ar' if (self.partner_lang or '').startswith('ar') else 'en',
+            'paypage_lang': 'ar' if lang.startswith('ar') else 'en',
             'customer_details': {k: v for k, v in customer_details.items() if v},
             'hide_shipping': self.provider_id.paytabs_hide_shipping,
             'return': urls.urljoin(return_base_url, PayTabsController._return_url),

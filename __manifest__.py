@@ -8,7 +8,7 @@
     'summary': "A payment provider covering the Middle East and North Africa.",
     'description': " ",  # Non-empty string to avoid loading the README file.
     'depends': ['payment'],
-    'images': ['static/description/icon.png'],
+    'images': ['static/description/main_screenshot.gif'],
     'data': [
         'views/payment_provider_views.xml',
         'views/payment_paytabs_templates.xml',

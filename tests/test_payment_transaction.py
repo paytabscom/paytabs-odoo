@@ -47,11 +47,23 @@ class TestPaymentTransaction(PayTabsCommon):
         self.assertEqual(capture_tx.reference, f'P-{source_tx.reference}')
 
     def test_paypage_payload_selects_a_supported_language(self):
-        """ Test that the payment page language is Arabic for Arabic partners, English otherwise. """
+        """ Test that the payment page language follows the browsing language, then the partner's
+        language, and falls back to English when neither is Arabic. """
         tx = self._create_transaction('redirect')
         for lang, expected in (('ar_001', 'ar'), ('ar_SY', 'ar'), ('fr_FR', 'en'), (False, 'en')):
             tx.partner_lang = lang
-            self.assertEqual(tx._paytabs_prepare_paypage_payload()['paypage_lang'], expected)
+            payload = tx.with_context(lang=None)._paytabs_prepare_paypage_payload()
+            self.assertEqual(payload['paypage_lang'], expected)
+
+    def test_paypage_payload_prefers_the_browsing_language(self):
+        """ Test that the website language overrides the partner's preferred language. """
+        tx = self._create_transaction('redirect')
+        tx.partner_lang = 'en_US'
+        payload = tx.with_context(lang='ar_001')._paytabs_prepare_paypage_payload()
+        self.assertEqual(payload['paypage_lang'], 'ar')
+        tx.partner_lang = 'ar_001'
+        payload = tx.with_context(lang='en_US')._paytabs_prepare_paypage_payload()
+        self.assertEqual(payload['paypage_lang'], 'en')
 
     def test_paypage_payload_leaves_card_payments_unrestricted(self):
         """ Test that no `payment_methods` restriction is sent for card payments. """
