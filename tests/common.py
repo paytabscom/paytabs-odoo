@@ -81,3 +81,31 @@ class PayTabsCommon(PaymentCommon):
             'code': 4,
             'message': "Duplicate request",
         }
+        cls.auth_webhook_data = dict(cls.webhook_data, tran_type='Auth')
+        cls.capture_data = {
+            'tran_ref': 'TST2016700000694',
+            'tran_type': 'Capture',
+            'previous_tran_ref': 'TST2016700000692',
+            'profile_id': 12345,
+            'cart_id': f'P-{cls.reference}',
+            'cart_currency': cls.currency.name,
+            'cart_amount': str(cls.amount),
+            'payment_result': {
+                'response_status': 'A',
+                'response_code': 'G31825',
+                'response_message': 'Authorised',
+            },
+        }
+        cls.void_data = dict(cls.capture_data, tran_ref='TST2016700000695', tran_type='Void')
+        cls.follow_up_error_data = dict(cls.capture_data, payment_result={
+            'response_status': 'E',
+            'response_code': '120',
+            'response_message': 'Previous transaction is on hold',
+        })
+
+    def _create_authorized_transaction(self, **values):
+        """ Create an authorized transaction on a provider configured for manual capture. """
+        self.provider.capture_manually = True
+        return self._create_transaction(
+            'redirect', state='authorized', provider_reference='TST2016700000692', **values
+        )

@@ -4,6 +4,8 @@ import hashlib
 import hmac
 from unittest.mock import Mock, patch
 
+from odoo.exceptions import ValidationError
+from odoo.fields import Command
 from odoo.tests import tagged
 from odoo.tools import is_html_empty
 
@@ -17,6 +19,23 @@ class TestPaymentProvider(PayTabsCommon):
     def test_provider_supports_partial_refunds(self):
         """ Test that PayTabs providers support partial refunds. """
         self.assertEqual(self.provider.support_refund, 'partial')
+
+    def test_provider_supports_partial_manual_capture(self):
+        """ Test that PayTabs providers support partial manual capture. """
+        self.assertEqual(self.provider.support_manual_capture, 'partial')
+
+    def test_manual_capture_can_be_enabled_with_cards(self):
+        """ Test that manual capture can be enabled when only cards are linked. """
+        self.provider.capture_manually = True
+        self.assertTrue(self.provider.capture_manually)
+
+    def test_manual_capture_is_refused_with_unsupported_payment_methods(self):
+        """ Test that manual capture can't be enabled with payment methods that don't support it. """
+        mada = self.env.ref('payment.payment_method_mada')
+        mada.active = True  # The constraint only considers active payment methods.
+        self.provider.payment_method_ids = [Command.link(mada.id)]
+        with self.assertRaises(ValidationError):
+            self.provider.capture_manually = True
 
     def test_default_payment_method_codes_include_card(self):
         """ Test that cards are enabled by default when PayTabs is enabled. """

@@ -4,7 +4,7 @@ import hashlib
 import hmac
 from urllib.parse import quote_plus
 
-from odoo import fields, models
+from odoo import fields, models, release
 
 from odoo.addons.payment_paytabs import const
 
@@ -57,7 +57,8 @@ class PaymentProvider(models.Model):
         help="The public HTTPS URL PayTabs must use to reach this instance when it is not exposed"
              " directly, e.g. through a development tunnel (ngrok, Cloudflare Tunnel) or a"
              " reverse proxy with a different hostname. Only the return and callback URLs sent to"
-             " PayTabs are affected. Leave empty to use the system base URL.",
+             " PayTabs are affected, and only while the provider is in test mode. Leave empty to"
+             " use the system base URL.",
         copy=False,
     )
     paytabs_tunnel_callback = fields.Boolean(
@@ -80,6 +81,7 @@ class PaymentProvider(models.Model):
         """ Override of `payment` to enable additional features. """
         super()._compute_feature_support_fields()
         self.filtered(lambda p: p.code == 'paytabs').update({
+            'support_manual_capture': 'partial',
             'support_refund': 'partial',
         })
 
@@ -125,20 +127,33 @@ class PaymentProvider(models.Model):
         """ Return the base URL to embed in the `return` or `callback` URL.
 
         PayTabs rejects payment requests whose callback URL is not publicly reachable, and only
-        POSTs the signed return data to an HTTPS URL. When the tunnel URL is set and enabled for
-        the requested URL type, it overrides the instance base URL.
+        POSTs the signed return data to an HTTPS URL. When the provider is in test mode and the
+        tunnel URL is set and enabled for the requested URL type, it overrides the instance base
+        URL. A tunnel URL left over from development is ignored once the provider goes live.
 
         :param str url_type: Either 'return' or 'callback'.
         :return: The base URL, without a trailing slash.
         :rtype: str
         """
         self.ensure_one()
-        use_tunnel = {
+        use_tunnel = self.state == 'test' and {
             'return': self.paytabs_tunnel_return,
             'callback': self.paytabs_tunnel_callback,
         }[url_type]
         base_url = self.paytabs_tunnel_url if use_tunnel and self.paytabs_tunnel_url else None
         return (base_url or self.get_base_url()).strip().rstrip('/')
+
+    def _paytabs_get_plugin_info(self):
+        """ Return the `plugin_info` payload identifying the integration to PayTabs.
+
+        :return: The plugin info with the platform name and version and the module version.
+        :rtype: dict
+        """
+        return {
+            'cart_name': 'odoo',  # Platform name registered on the PayTabs side; not free text.
+            'cart_version': release.version,
+            'plugin_version': self.env.ref('base.module_payment_paytabs').installed_version,
+        }
 
     # === REQUEST HELPERS === #
 
