@@ -155,12 +155,15 @@ PayTabs rejects payment requests whose callback URL is not publicly reachable. T
 local instance:
 
 1. Expose it through a tunnel (e.g. [ngrok](https://ngrok.com), Cloudflare Tunnel)
-2. In the provider's **Configuration** tab, under **PayTabs: Tunnel (Development)**, set **URL**
+2. Set the provider's **State** to **Test Mode**
+3. In the provider's **Configuration** tab, under **PayTabs: Tunnel (Test Mode)**, set **URL**
    to the tunnel address, e.g. `https://xxxx.ngrok-free.app`
-3. Leave **Tunnel Callback** on (the webhook must be publicly reachable)
-4. Leave **Tunnel Return** off unless the browser cannot reach the instance directly
+4. Leave **Tunnel Callback** on (the webhook must be publicly reachable)
+5. Leave **Tunnel Return** off unless the browser cannot reach the instance directly
 
-`web.base.url` is left untouched. Clear the tunnel URL in production.
+`web.base.url` is left untouched. The tunnel section is only shown, and the tunnel URL only
+used, while the provider is in test mode; switching to **Enabled** falls back to the system base
+URL.
 
 Test cards: https://support.paytabs.com/en/support/solutions/articles/60000709774
 

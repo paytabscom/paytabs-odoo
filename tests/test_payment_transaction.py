@@ -97,6 +97,23 @@ class TestPaymentTransaction(PayTabsCommon):
             payload['callback'], f'{self.provider.get_base_url()}/payment/paytabs/webhook'
         )
 
+    def test_paypage_payload_ignores_the_tunnel_when_enabled(self):
+        """ Test that the tunnel URL is ignored once the provider is no longer in test mode. """
+        self.provider.write({
+            'state': 'enabled',
+            'paytabs_tunnel_url': 'https://example.ngrok-free.app',
+            'paytabs_tunnel_return': True,
+            'paytabs_tunnel_callback': True,
+        })
+        tx = self._create_transaction('redirect')
+        payload = tx._paytabs_prepare_paypage_payload()
+        self.assertEqual(
+            payload['return'], f'{self.provider.get_base_url()}/payment/paytabs/return'
+        )
+        self.assertEqual(
+            payload['callback'], f'{self.provider.get_base_url()}/payment/paytabs/webhook'
+        )
+
     def test_paypage_payload_uses_the_base_url_without_tunnel(self):
         """ Test that the toggles have no effect while no tunnel URL is set. """
         self.provider.write({

@@ -32,7 +32,7 @@
                     <field name="paytabs_hide_shipping"/>
                     <field name="paytabs_card_label" placeholder="Card"/>
                 </group>
-                <group string="PayTabs: Tunnel (Development)" name="paytabs_tunnel" invisible="code != 'paytabs'">
+                <group string="PayTabs: Tunnel (Test Mode)" name="paytabs_tunnel" invisible="code != 'paytabs' or state != 'test'">
                     <field name="paytabs_tunnel_url" string="URL" placeholder="https://xxxx.ngrok-free.app"/>
                     <field name="paytabs_tunnel_callback" string="Tunnel Callback" invisible="not paytabs_tunnel_url"/>
                     <field name="paytabs_tunnel_return" string="Tunnel Return" invisible="not paytabs_tunnel_url"/>
