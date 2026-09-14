@@ -18,7 +18,6 @@ REGIONS = {
     'GLOBAL': ("Global", 'https://secure-global.paytabs.com'),
     'MADFOAT': ("Madfoat", 'https://madfoat-secure.paytabs.com'),
     'CUZDAN': ("Cuzdan", 'https://secure.cuzdan.az'),
-    'DEMO': ("Demo", 'https://paypage.paytabs.com'),
 }
 
 # The selection values of the `paytabs_region` field.

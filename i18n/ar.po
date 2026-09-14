@@ -4,134 +4,91 @@
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: Odoo Server 19.0-20260619\n"
+"Project-Id-Version: Odoo Server 19.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-09-14 05:44+0000\n"
 "PO-Revision-Date: 2026-09-14 05:44+0000\n"
 "Last-Translator: \n"
-"Language-Team: \n"
+"Language-Team: Arabic\n"
+"Language: ar\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: \n"
-"Plural-Forms: \n"
+"Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
+"&& n%100<=10 ? 3 : n%100>=11 ? 4 : 5;\n"
 
 #. module: payment_paytabs
 #. odoo-python
 #: code:addons/payment_paytabs/models/payment_transaction.py:0
 msgid ""
 "An error occurred during the processing of your payment. Please try again."
-msgstr ""
+msgstr "حدث خطأ أثناء معالجة عملية الدفع الخاصة بك. يرجى المحاولة مرة أخرى."
 
 #. module: payment_paytabs
 #. odoo-python
 #: code:addons/payment_paytabs/models/payment_transaction.py:0
 msgid "Capture of %s"
-msgstr ""
+msgstr "تحصيل %s"
 
 #. module: payment_paytabs
 #: model_terms:ir.ui.view,arch_db:payment_paytabs.payment_provider_form
 msgid "Card"
-msgstr ""
+msgstr "البطاقة"
 
 #. module: payment_paytabs
 #: model:ir.model.fields,field_description:payment_paytabs.field_payment_provider__paytabs_card_label
 msgid "Card Method Label"
-msgstr ""
+msgstr "تسمية طريقة الدفع بالبطاقة"
 
 #. module: payment_paytabs
 #: model:ir.model.fields,field_description:payment_paytabs.field_payment_provider__code
 msgid "Code"
-msgstr ""
+msgstr "رمز"
 
 #. module: payment_paytabs
 #: model:ir.model.fields.selection,name:payment_paytabs.selection__payment_provider__paytabs_region__cuzdan
 msgid "Cuzdan"
-msgstr ""
+msgstr "Cuzdan"
 
 #. module: payment_paytabs
 #: model:ir.model.fields,field_description:payment_paytabs.field_payment_provider__display_name
 #: model:ir.model.fields,field_description:payment_paytabs.field_payment_transaction__display_name
 msgid "Display Name"
-msgstr ""
-
-#. module: payment_paytabs
-#: model:ir.model.fields.selection,name:payment_paytabs.selection__payment_provider__paytabs_region__egy
-msgid "Egypt"
-msgstr ""
-
-#. module: payment_paytabs
-#: model:ir.model.fields.selection,name:payment_paytabs.selection__payment_provider__paytabs_region__global
-msgid "Global"
-msgstr ""
+msgstr "اسم العرض"
 
 #. module: payment_paytabs
 #: model:ir.model.fields,field_description:payment_paytabs.field_payment_provider__paytabs_hide_shipping
 msgid "Hide Shipping Details"
-msgstr ""
+msgstr "إخفاء بيانات الشحن"
 
 #. module: payment_paytabs
 #: model:ir.model.fields,field_description:payment_paytabs.field_payment_provider__id
 #: model:ir.model.fields,field_description:payment_paytabs.field_payment_transaction__id
 msgid "ID"
-msgstr ""
-
-#. module: payment_paytabs
-#: model:ir.model.fields.selection,name:payment_paytabs.selection__payment_provider__paytabs_region__irq
-msgid "Iraq"
-msgstr ""
-
-#. module: payment_paytabs
-#: model:ir.model.fields.selection,name:payment_paytabs.selection__payment_provider__paytabs_region__jor
-msgid "Jordan"
-msgstr ""
-
-#. module: payment_paytabs
-#: model:ir.model.fields.selection,name:payment_paytabs.selection__payment_provider__paytabs_region__kwt
-msgid "Kuwait"
-msgstr ""
-
-#. module: payment_paytabs
-#: model:ir.model.fields.selection,name:payment_paytabs.selection__payment_provider__paytabs_region__madfoat
-msgid "Madfoat"
-msgstr ""
-
-#. module: payment_paytabs
-#: model:ir.model.fields.selection,name:payment_paytabs.selection__payment_provider__paytabs_region__mar
-msgid "Morocco"
-msgstr ""
+msgstr "المعرّف"
 
 #. module: payment_paytabs
 #. odoo-python
 #: code:addons/payment_paytabs/models/payment_transaction.py:0
 msgid "No reason provided"
-msgstr ""
-
-#. module: payment_paytabs
-#: model:ir.model.fields.selection,name:payment_paytabs.selection__payment_provider__paytabs_region__omn
-msgid "Oman"
-msgstr ""
+msgstr "لم يتم تقديم سبب"
 
 #. module: payment_paytabs
 #: model:ir.model.fields.selection,name:payment_paytabs.selection__payment_provider__code__paytabs
 #: model:payment.provider,name:payment_paytabs.payment_provider_paytabs
 #: model_terms:ir.ui.view,arch_db:payment_paytabs.payment_provider_form
 msgid "PayTabs"
-msgstr ""
+msgstr "PayTabs"
 
 #. module: payment_paytabs
 #: model:ir.model.fields,field_description:payment_paytabs.field_payment_provider__paytabs_profile_id
 msgid "PayTabs Profile ID"
-msgstr ""
-
-#. module: payment_paytabs
-#: model:ir.model.fields,field_description:payment_paytabs.field_payment_provider__paytabs_region
-msgid "PayTabs Region"
-msgstr ""
+msgstr "معرّف ملف PayTabs"
 
 #. module: payment_paytabs
 #: model:ir.model.fields,field_description:payment_paytabs.field_payment_provider__paytabs_server_key
 msgid "PayTabs Server Key"
-msgstr ""
+msgstr "مفتاح خادم PayTabs"
 
 #. module: payment_paytabs
 #. odoo-python
@@ -142,50 +99,49 @@ msgid ""
 " while the hold lasts; review the transaction in the PayTabs dashboard and "
 "capture or void it from there."
 msgstr ""
+"صرّح PayTabs بالمعاملة %(ref)s لكن فحص المخاطر لديه وضع المبلغ قيد التعليق "
+"(الحالة H). يرفض PayTabs طلبات التحصيل والإلغاء المرسلة من أودو ما دام "
+"التعليق ساريًا؛ راجع المعاملة في لوحة تحكم PayTabs وقم بتحصيلها أو إلغائها "
+"من هناك."
 
 #. module: payment_paytabs
 #. odoo-python
 #: code:addons/payment_paytabs/models/payment_transaction.py:0
 msgid ""
 "PayTabs reported the %(tx_label)s %(ref)s as %(status)s. Reason: %(reason)s"
-msgstr ""
+msgstr "أبلغ PayTabs بأن %(tx_label)s %(ref)s %(status)s. السبب: %(reason)s"
 
 #. module: payment_paytabs
 #: model_terms:ir.ui.view,arch_db:payment_paytabs.payment_provider_form
 msgid "PayTabs: Tunnel (Test Mode)"
-msgstr ""
+msgstr "PayTabs: Tunnel (وضع الاختبار)"
 
 #. module: payment_paytabs
 #: model:ir.model,name:payment_paytabs.model_payment_provider
 msgid "Payment Provider"
-msgstr ""
+msgstr "مزود الدفع"
 
 #. module: payment_paytabs
 #: model:ir.model,name:payment_paytabs.model_payment_transaction
 msgid "Payment Transaction"
-msgstr ""
+msgstr "معاملة الدفع"
 
 #. module: payment_paytabs
 #: model_terms:ir.ui.view,arch_db:payment_paytabs.payment_provider_form
 msgid "Profile ID"
-msgstr ""
-
-#. module: payment_paytabs
-#: model:ir.model.fields.selection,name:payment_paytabs.selection__payment_provider__paytabs_region__qat
-msgid "Qatar"
-msgstr ""
+msgstr "معرّف الملف"
 
 #. module: payment_paytabs
 #. odoo-python
 #: code:addons/payment_paytabs/models/payment_transaction.py:0
 msgid "Received data with invalid status: %s."
-msgstr ""
+msgstr "تم استلام البيانات مع حالة غير صالحة: %s."
 
 #. module: payment_paytabs
 #. odoo-python
 #: code:addons/payment_paytabs/models/payment_transaction.py:0
 msgid "Received data with missing payment status."
-msgstr ""
+msgstr "تم استلام البيانات دون حالة الدفع."
 
 #. module: payment_paytabs
 #: model:ir.model.fields,help:payment_paytabs.field_payment_provider__paytabs_tunnel_return
@@ -195,22 +151,20 @@ msgid ""
 "directly, and the return page then keeps the session it started the payment "
 "with."
 msgstr ""
+"إعادة توجيه العميل عبر عنوان Tunnel بعد الدفع. يُترك عادةً معطّلاً: يمكن "
+"لمتصفح العميل الوصول إلى النظام مباشرةً، وبذلك تحتفظ صفحة العودة بالجلسة "
+"التي بدأ الدفع بها."
 
 #. module: payment_paytabs
 #. odoo-python
 #: code:addons/payment_paytabs/models/payment_transaction.py:0
 msgid "Refund of %s"
-msgstr ""
+msgstr "استرداد %s"
 
 #. module: payment_paytabs
 #: model_terms:ir.ui.view,arch_db:payment_paytabs.payment_provider_form
 msgid "Region"
-msgstr ""
-
-#. module: payment_paytabs
-#: model:ir.model.fields.selection,name:payment_paytabs.selection__payment_provider__paytabs_region__sau
-msgid "Saudi Arabia"
-msgstr ""
+msgstr "المنطقة"
 
 #. module: payment_paytabs
 #: model:ir.model.fields,help:payment_paytabs.field_payment_provider__paytabs_tunnel_callback
@@ -218,24 +172,26 @@ msgid ""
 "Send the webhook (callback) notifications through the tunnel URL. PayTabs "
 "calls this URL server-to-server, so it must be publicly reachable."
 msgstr ""
+"إرسال إشعارات الويب هوك (رد الاتصال) عبر عنوان Tunnel. يستدعي PayTabs هذا "
+"العنوان من خادم إلى خادم، لذا يجب أن يكون متاحًا للعموم."
 
 #. module: payment_paytabs
 #: model_terms:ir.ui.view,arch_db:payment_paytabs.payment_provider_form
 msgid "Server Key"
-msgstr ""
+msgstr "مفتاح الخادم"
 
 #. module: payment_paytabs
 #. odoo-python
 #: code:addons/payment_paytabs/models/payment_transaction.py:0
 msgid ""
 "The %(tran_type)s request was rejected. Reason: %(message)s (code %(code)s)"
-msgstr ""
+msgstr "تم رفض طلب %(tran_type)s. السبب: %(message)s (الرمز %(code)s)"
 
 #. module: payment_paytabs
 #. odoo-python
 #: code:addons/payment_paytabs/models/payment_transaction.py:0
 msgid "The capture of the transaction %s failed."
-msgstr ""
+msgstr "فشل تحصيل المعاملة %s."
 
 #. module: payment_paytabs
 #: model:ir.model.fields,help:payment_paytabs.field_payment_provider__paytabs_profile_id
@@ -243,6 +199,8 @@ msgid ""
 "The profile ID of the PayTabs account. Test and live accounts have distinct "
 "profile IDs."
 msgstr ""
+"معرّف ملف حساب PayTabs. لحسابات الاختبار والحسابات الفعلية معرّفات ملفات "
+"مختلفة."
 
 #. module: payment_paytabs
 #: model:ir.model.fields,help:payment_paytabs.field_payment_provider__paytabs_tunnel_url
@@ -253,6 +211,11 @@ msgid ""
 "callback URLs sent to PayTabs are affected, and only while the provider is "
 "in test mode. Leave empty to use the system base URL."
 msgstr ""
+"عنوان HTTPS العام الذي يجب أن يستخدمه PayTabs للوصول إلى هذا النظام عندما لا "
+"يكون متاحًا مباشرةً، مثلاً عبر نفق تطوير (ngrok أو Cloudflare Tunnel) أو "
+"وكيل عكسي باسم مضيف مختلف. يؤثر فقط على عنواني العودة ورد الاتصال المرسلين "
+"إلى PayTabs، وفقط أثناء وجود المزود في وضع الاختبار. اتركه فارغًا لاستخدام "
+"العنوان الأساسي للنظام."
 
 #. module: payment_paytabs
 #: model:ir.model.fields,help:payment_paytabs.field_payment_provider__paytabs_region
@@ -261,6 +224,8 @@ msgid ""
 " It must match the region the profile was issued for, or PayTabs rejects the"
 " server key."
 msgstr ""
+"منطقة حساب PayTabs، وهي التي تحدد نقطة نهاية الواجهة البرمجية المستخدمة. يجب "
+"أن تطابق المنطقة التي صدر الملف لها، وإلا يرفض PayTabs مفتاح الخادم."
 
 #. module: payment_paytabs
 #: model:ir.model.fields,help:payment_paytabs.field_payment_provider__paytabs_server_key
@@ -268,11 +233,12 @@ msgid ""
 "The server key of the PayTabs account, found under Developers > Key "
 "management."
 msgstr ""
+"مفتاح خادم حساب PayTabs، ويوجد تحت Developers > Key management."
 
 #. module: payment_paytabs
 #: model:ir.model.fields,help:payment_paytabs.field_payment_provider__code
 msgid "The technical code of this payment provider."
-msgstr ""
+msgstr "الكود التقني لمزود الدفع هذا."
 
 #. module: payment_paytabs
 #: model:ir.model.fields,help:payment_paytabs.field_payment_provider__paytabs_card_label
@@ -281,53 +247,51 @@ msgid ""
 "e.g. \"PayTabs Payments\". Leave empty to keep the standard \"Card\" title. "
 "Other payment methods keep their own name."
 msgstr ""
+"العنوان المعروض عند الدفع لطريقة الدفع بالبطاقة الخاصة بهذا المزود، مثل "
+"\"مدفوعات PayTabs\". اتركه فارغًا للاحتفاظ بالعنوان القياسي \"البطاقة\". "
+"تحتفظ طرق الدفع الأخرى بأسمائها."
 
 #. module: payment_paytabs
 #. odoo-python
 #: code:addons/payment_paytabs/models/payment_transaction.py:0
 msgid "The void of the transaction %s failed."
-msgstr ""
+msgstr "فشل إلغاء المعاملة %s."
 
 #. module: payment_paytabs
 #: model_terms:ir.ui.view,arch_db:payment_paytabs.payment_provider_form
 msgid "Tunnel Callback"
-msgstr ""
+msgstr "رد الاتصال عبر Tunnel"
 
 #. module: payment_paytabs
 #: model:ir.model.fields,field_description:payment_paytabs.field_payment_provider__paytabs_tunnel_callback
 msgid "Tunnel Callback URL"
-msgstr ""
+msgstr "عنوان رد الاتصال عبر Tunnel"
 
 #. module: payment_paytabs
 #: model_terms:ir.ui.view,arch_db:payment_paytabs.payment_provider_form
 msgid "Tunnel Return"
-msgstr ""
+msgstr "العودة عبر Tunnel"
 
 #. module: payment_paytabs
 #: model:ir.model.fields,field_description:payment_paytabs.field_payment_provider__paytabs_tunnel_return
 msgid "Tunnel Return URL"
-msgstr ""
+msgstr "عنوان العودة عبر Tunnel"
 
 #. module: payment_paytabs
 #: model:ir.model.fields,field_description:payment_paytabs.field_payment_provider__paytabs_tunnel_url
 msgid "Tunnel URL"
-msgstr ""
+msgstr "عنوان Tunnel"
 
 #. module: payment_paytabs
 #: model_terms:ir.ui.view,arch_db:payment_paytabs.payment_provider_form
 msgid "URL"
-msgstr ""
-
-#. module: payment_paytabs
-#: model:ir.model.fields.selection,name:payment_paytabs.selection__payment_provider__paytabs_region__are
-msgid "United Arab Emirates"
-msgstr ""
+msgstr "العنوان"
 
 #. module: payment_paytabs
 #. odoo-python
 #: code:addons/payment_paytabs/models/payment_transaction.py:0
 msgid "Void of %s"
-msgstr ""
+msgstr "إلغاء %s"
 
 #. module: payment_paytabs
 #: model:ir.model.fields,help:payment_paytabs.field_payment_provider__paytabs_hide_shipping
@@ -336,70 +300,72 @@ msgid ""
 "Odoo never sends shipping details to PayTabs, so leave it enabled unless the"
 " payment page must collect them."
 msgstr ""
+"إخفاء قسم عنوان الشحن في صفحة دفع PayTabs. لا يرسل أودو بيانات الشحن إلى "
+"PayTabs أبدًا، لذا اتركه مفعّلاً ما لم يكن على صفحة الدفع جمعها."
 
 #. module: payment_paytabs
 #. odoo-python
 #: code:addons/payment_paytabs/models/payment_transaction.py:0
 msgid "Your payment could not be completed. Please contact us or try again."
-msgstr ""
+msgstr "لم يتمكن النظام من إتمام عملية الدفع. يرجى التواصل معنا أو المحاولة مرة أخرى."
 
 #. module: payment_paytabs
 #: model_terms:payment.provider,auth_msg:payment_paytabs.payment_provider_paytabs
 msgid "Your payment has been authorized."
-msgstr ""
+msgstr "تم التصريح بالدفع."
 
 #. module: payment_paytabs
 #: model_terms:payment.provider,cancel_msg:payment_paytabs.payment_provider_paytabs
 msgid "Your payment has been cancelled."
-msgstr ""
+msgstr "لقد تم إلغاء الدفع."
 
 #. module: payment_paytabs
 #: model_terms:payment.provider,pending_msg:payment_paytabs.payment_provider_paytabs
 msgid "Your payment has been processed but is waiting for approval."
-msgstr ""
+msgstr "لقد تمت معالجة مدفوعاتك بنجاح ولكنها بانتظار الموافقة."
 
 #. module: payment_paytabs
 #: model_terms:payment.provider,done_msg:payment_paytabs.payment_provider_paytabs
 msgid "Your payment has been processed."
-msgstr ""
+msgstr "لقد تمت معالجة الدفع."
 
 #. module: payment_paytabs
 #. odoo-python
 #: code:addons/payment_paytabs/models/payment_transaction.py:0
 msgid "capture or void"
-msgstr ""
+msgstr "عملية التحصيل أو الإلغاء"
 
 #. module: payment_paytabs
 #. odoo-python
 #: code:addons/payment_paytabs/models/payment_transaction.py:0
 msgid "declined"
-msgstr ""
+msgstr "مرفوضة"
 
 #. module: payment_paytabs
 #. odoo-python
 #: code:addons/payment_paytabs/models/payment_transaction.py:0
 msgid "expired"
-msgstr ""
+msgstr "منتهية الصلاحية"
 
 #. module: payment_paytabs
 #. odoo-python
 #: code:addons/payment_paytabs/models/payment_transaction.py:0
 msgid "failed"
-msgstr ""
+msgstr "فاشلة"
 
 #. module: payment_paytabs
 #: model_terms:ir.ui.view,arch_db:payment_paytabs.payment_provider_form
 msgid "https://xxxx.ngrok-free.app"
-msgstr ""
+msgstr "https://xxxx.ngrok-free.app"
 
 #. module: payment_paytabs
 #. odoo-python
 #: code:addons/payment_paytabs/models/payment_transaction.py:0
 msgid "refund"
-msgstr ""
+msgstr "عملية الاسترداد"
 
 #. module: payment_paytabs
 #. odoo-python
 #: code:addons/payment_paytabs/models/payment_transaction.py:0
 msgid "transaction"
-msgstr ""
+msgstr "المعاملة"
