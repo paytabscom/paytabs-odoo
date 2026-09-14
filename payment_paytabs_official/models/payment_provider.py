@@ -6,7 +6,7 @@ from urllib.parse import quote_plus
 
 from odoo import fields, models, release
 
-from odoo.addons.payment_paytabs import const
+from odoo.addons.payment_paytabs_official import const
 
 
 class PaymentProvider(models.Model):
@@ -152,7 +152,7 @@ class PaymentProvider(models.Model):
         return {
             'cart_name': 'odoo',  # Platform name registered on the PayTabs side; not free text.
             'cart_version': release.version,
-            'plugin_version': self.env.ref('base.module_payment_paytabs').installed_version,
+            'plugin_version': self.env.ref('base.module_payment_paytabs_official').installed_version,
         }
 
     # === REQUEST HELPERS === #

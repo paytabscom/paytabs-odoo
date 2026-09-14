@@ -6,7 +6,7 @@ from odoo.exceptions import ValidationError
 from odoo.tests import tagged
 from odoo.tools import mute_logger
 
-from odoo.addons.payment_paytabs.tests.common import PayTabsCommon
+from odoo.addons.payment_paytabs_official.tests.common import PayTabsCommon
 
 
 @tagged('post_install', '-at_install')
@@ -57,6 +57,7 @@ class TestPaymentTransaction(PayTabsCommon):
 
     def test_paypage_payload_prefers_the_browsing_language(self):
         """ Test that the website language overrides the partner's preferred language. """
+        self.env['res.lang']._activate_lang('ar_001')  # `env.lang` rejects inactive languages.
         tx = self._create_transaction('redirect')
         tx.partner_lang = 'en_US'
         payload = tx.with_context(lang='ar_001')._paytabs_prepare_paypage_payload()
@@ -164,7 +165,7 @@ class TestPaymentTransaction(PayTabsCommon):
         self.assertEqual(rendering_values['api_url'], self.paypage_data['redirect_url'])
         self.assertEqual(tx.provider_reference, self.paypage_data['tran_ref'])
 
-    @mute_logger('odoo.addons.payment_paytabs.models.payment_transaction')
+    @mute_logger('odoo.addons.payment_paytabs_official.models.payment_transaction')
     def test_rendering_values_handle_business_errors(self):
         """ Test that an error response without a redirect URL sets the transaction in error. """
         tx = self._create_transaction('redirect')
@@ -218,7 +219,7 @@ class TestPaymentTransaction(PayTabsCommon):
         self.assertEqual(tx.state, 'done')
         self.assertEqual(tx.provider_reference, 'TST2016700000692')
 
-    @mute_logger('odoo.addons.payment_paytabs.models.payment_transaction')
+    @mute_logger('odoo.addons.payment_paytabs_official.models.payment_transaction')
     def test_apply_updates_sets_on_hold_transaction_in_error(self):
         """ Test that an authorization hold is set in error and reported to the merchant. """
         tx = self._create_transaction('redirect')
@@ -233,7 +234,7 @@ class TestPaymentTransaction(PayTabsCommon):
             "on hold" in str(call.args[0]) for call in log_mock.call_args_list
         ))
 
-    @mute_logger('odoo.addons.payment_paytabs.models.payment_transaction')
+    @mute_logger('odoo.addons.payment_paytabs_official.models.payment_transaction')
     def test_apply_updates_sets_declined_transaction_in_error(self):
         """ Test that a declined payment sets the transaction in error. """
         tx = self._create_transaction('redirect')
@@ -243,7 +244,7 @@ class TestPaymentTransaction(PayTabsCommon):
         tx._apply_updates(payload)
         self.assertEqual(tx.state, 'error')
 
-    @mute_logger('odoo.addons.payment_paytabs.models.payment_transaction')
+    @mute_logger('odoo.addons.payment_paytabs_official.models.payment_transaction')
     def test_decline_reason_is_logged_on_linked_documents(self):
         """ Test that the gateway's decline reason is logged for the merchant, not the customer. """
         tx = self._create_transaction('redirect')
@@ -282,7 +283,7 @@ class TestPaymentTransaction(PayTabsCommon):
         tx._apply_updates(payload)
         self.assertEqual(tx.state, 'pending')
 
-    @mute_logger('odoo.addons.payment_paytabs.models.payment_transaction')
+    @mute_logger('odoo.addons.payment_paytabs_official.models.payment_transaction')
     def test_apply_updates_sets_error_and_expired_transactions_in_error(self):
         """ Test that the E and X statuses set the transaction in error. """
         for status in ('E', 'X'):
@@ -291,7 +292,7 @@ class TestPaymentTransaction(PayTabsCommon):
             tx._apply_updates(payload)
             self.assertEqual(tx.state, 'error')
 
-    @mute_logger('odoo.addons.payment_paytabs.models.payment_transaction')
+    @mute_logger('odoo.addons.payment_paytabs_official.models.payment_transaction')
     def test_apply_updates_sets_missing_status_in_error(self):
         """ Test that data without a payment status sets the transaction in error. """
         tx = self._create_transaction('redirect')
@@ -299,7 +300,7 @@ class TestPaymentTransaction(PayTabsCommon):
         tx._apply_updates(payload)
         self.assertEqual(tx.state, 'error')
 
-    @mute_logger('odoo.addons.payment_paytabs.models.payment_transaction')
+    @mute_logger('odoo.addons.payment_paytabs_official.models.payment_transaction')
     def test_apply_updates_ignores_follow_up_data_on_sale_transaction(self):
         """ Test that refund/void/capture/release data doesn't update a sale transaction. """
         for tran_type in ('Refund', 'Void', 'Capture', 'Release', 'refund'):
@@ -309,7 +310,7 @@ class TestPaymentTransaction(PayTabsCommon):
             self.assertEqual(tx.state, 'draft')
             self.assertFalse(tx.provider_reference)
 
-    @mute_logger('odoo.addons.payment_paytabs.models.payment_transaction')
+    @mute_logger('odoo.addons.payment_paytabs_official.models.payment_transaction')
     def test_apply_updates_ignores_sale_data_on_refund_transaction(self):
         """ Test that sale data doesn't update a refund transaction. """
         source_tx = self._create_transaction(
@@ -347,7 +348,7 @@ class TestPaymentTransaction(PayTabsCommon):
         tx._apply_updates(payload)
         self.assertEqual(tx.state, 'done')
 
-    @mute_logger('odoo.addons.payment_paytabs.models.payment_transaction')
+    @mute_logger('odoo.addons.payment_paytabs_official.models.payment_transaction')
     def test_apply_updates_ignores_capture_data_on_source_transaction(self):
         """ Test that capture data doesn't update the authorized source transaction. """
         source_tx = self._create_authorized_transaction()
@@ -400,7 +401,7 @@ class TestPaymentTransaction(PayTabsCommon):
         self.assertEqual(void_tx.state, 'cancel')
         self.assertEqual(source_tx.state, 'authorized')
 
-    @mute_logger('odoo.addons.payment_paytabs.models.payment_transaction')
+    @mute_logger('odoo.addons.payment_paytabs_official.models.payment_transaction')
     def test_apply_updates_sets_failed_capture_in_error(self):
         """ Test that a refused capture sets the child in error with the gateway reason logged. """
         source_tx = self._create_authorized_transaction()
@@ -414,7 +415,7 @@ class TestPaymentTransaction(PayTabsCommon):
         self.assertIn("Previous transaction is on hold (120)", log_mock.call_args.args[0])
         self.assertEqual(source_tx.state, 'authorized')
 
-    @mute_logger('odoo.addons.payment_paytabs.models.payment_transaction')
+    @mute_logger('odoo.addons.payment_paytabs_official.models.payment_transaction')
     def test_apply_updates_sets_failed_void_in_error(self):
         """ Test that a refused void sets the child in error. """
         source_tx = self._create_authorized_transaction()
@@ -476,7 +477,7 @@ class TestPaymentTransaction(PayTabsCommon):
         tx._process('paytabs', self.return_data)
         self.assertEqual(tx.state, 'done')
 
-    @mute_logger('odoo.addons.payment_paytabs.models.payment_transaction')
+    @mute_logger('odoo.addons.payment_paytabs_official.models.payment_transaction')
     def test_apply_updates_rejects_unknown_status(self):
         """ Test that an unknown payment status sets the transaction in error. """
         tx = self._create_transaction('redirect')

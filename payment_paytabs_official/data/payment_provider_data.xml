@@ -4,8 +4,8 @@
     <record id="payment_provider_paytabs" model="payment.provider">
         <field name="name">PayTabs</field>
         <field name="code">paytabs</field>
-        <field name="module_id" ref="base.module_payment_paytabs"/>
-        <field name="image_128" type="base64" file="payment_paytabs/static/description/icon.png"/>
+        <field name="module_id" ref="base.module_payment_paytabs_official"/>
+        <field name="image_128" type="base64" file="payment_paytabs_official/static/description/icon.png"/>
         <field name="redirect_form_view_id" ref="redirect_form"/>
         <!-- The payment methods available depend on the region and on the PayTabs profile; card is
              common to all. See https://site.paytabs.com/en/payment-methods/ -->
