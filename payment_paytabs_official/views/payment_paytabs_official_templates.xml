@@ -1,14 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <template id="redirect_form">
-        <form t-att-action="api_url" method="get">
-            <t t-foreach="url_params" t-as="param">
-                <input type="hidden" t-att-name="param" t-att-value="url_params[param]"/>
-            </t>
-        </form>
-    </template>
-
     <template id="method_form" inherit_id="payment.method_form">
         <xpath expr="//label[hasclass('o_payment_option_label')]" position="attributes">
             <attribute name="t-out">(provider_sudo.code == 'paytabs' and pm_sudo.code == 'card' and provider_sudo.paytabs_card_label) or pm_sudo.name</attribute>

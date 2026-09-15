@@ -2,6 +2,7 @@
 
 from unittest.mock import patch
 
+from odoo import release
 from odoo.exceptions import ValidationError
 from odoo.tests import tagged
 from odoo.tools import mute_logger
@@ -31,8 +32,8 @@ class TestPaymentTransaction(PayTabsCommon):
         self.assertTrue(payload['return'].endswith('/payment/paytabs/return'))
         self.assertTrue(payload['callback'].endswith('/payment/paytabs/webhook'))
         self.assertEqual(payload['plugin_info']['cart_name'], 'odoo')
-        self.assertTrue(payload['plugin_info']['cart_version'].startswith('19.0'))
-        self.assertEqual(payload['plugin_info']['plugin_version'], '19.0.1.0.0')
+        self.assertEqual(payload['plugin_info']['cart_version'], release.version)
+        self.assertEqual(payload['plugin_info']['plugin_version'], 'saas~19.4.1.0.0')
 
     def test_paypage_payload_requests_an_authorization_when_capturing_manually(self):
         """ Test that the payment page authorizes instead of selling when capture is manual. """
@@ -51,18 +52,17 @@ class TestPaymentTransaction(PayTabsCommon):
         language, and falls back to English when neither is Arabic. """
         tx = self._create_transaction('redirect')
         for lang, expected in (('ar_001', 'ar'), ('ar_SY', 'ar'), ('fr_FR', 'en'), (False, 'en')):
-            tx.partner_lang = lang
+            self._update_transaction(tx, partner_lang=lang)
             payload = tx.with_context(lang=None)._paytabs_prepare_paypage_payload()
             self.assertEqual(payload['paypage_lang'], expected)
 
     def test_paypage_payload_prefers_the_browsing_language(self):
         """ Test that the website language overrides the partner's preferred language. """
         self.env['res.lang']._activate_lang('ar_001')  # `env.lang` rejects inactive languages.
-        tx = self._create_transaction('redirect')
-        tx.partner_lang = 'en_US'
+        tx = self._create_transaction('redirect', partner_lang='en_US')
         payload = tx.with_context(lang='ar_001')._paytabs_prepare_paypage_payload()
         self.assertEqual(payload['paypage_lang'], 'ar')
-        tx.partner_lang = 'ar_001'
+        self._update_transaction(tx, partner_lang='ar_001')
         payload = tx.with_context(lang='en_US')._paytabs_prepare_paypage_payload()
         self.assertEqual(payload['paypage_lang'], 'en')
 
@@ -74,7 +74,8 @@ class TestPaymentTransaction(PayTabsCommon):
     def test_paypage_payload_restricts_the_page_to_the_selected_apm(self):
         """ Test that the PayTabs code of the selected APM is sent in `payment_methods`. """
         tx = self._create_transaction(
-            'redirect', payment_method_id=self.env.ref('payment.payment_method_stcpay').id
+            'redirect',
+            payment_method_id=self.env.ref('payment_paytabs_official.payment_method_stcpay').id,
         )
         self.assertEqual(tx._paytabs_prepare_paypage_payload()['payment_methods'], ['stcpay'])
 
@@ -114,9 +115,9 @@ class TestPaymentTransaction(PayTabsCommon):
         )
 
     def test_paypage_payload_ignores_the_tunnel_when_enabled(self):
-        """ Test that the tunnel URL is ignored once the provider is no longer in test mode. """
+        """ Test that the tunnel URL is ignored once the provider is live. """
         self.provider.write({
-            'state': 'enabled',
+            'is_live': True,
             'paytabs_tunnel_url': 'https://example.ngrok-free.app',
             'paytabs_tunnel_return': True,
             'paytabs_tunnel_callback': True,
@@ -149,7 +150,8 @@ class TestPaymentTransaction(PayTabsCommon):
     def test_paypage_payload_omits_empty_customer_details(self):
         """ Test that blank customer details are not sent to PayTabs. """
         tx = self._create_transaction('redirect')
-        tx.partner_city = False  # Partner values are copied from the partner on creation.
+        # Partner values are copied from the partner on creation.
+        self._update_transaction(tx, partner_city=False)
         payload = tx._paytabs_prepare_paypage_payload()
         self.assertNotIn('city', payload['customer_details'])
 
@@ -160,9 +162,12 @@ class TestPaymentTransaction(PayTabsCommon):
             'odoo.addons.payment.models.payment_provider.PaymentProvider._send_api_request',
             return_value=self.paypage_data,
         ):
-            rendering_values = tx._get_specific_rendering_values(None)
+            rendering_values = tx.with_context(
+                payment_safe_write=True
+            )._get_specific_rendering_values(None)
 
         self.assertEqual(rendering_values['api_url'], self.paypage_data['redirect_url'])
+        self.assertEqual(rendering_values['http_method'], 'get')
         self.assertEqual(tx.provider_reference, self.paypage_data['tran_ref'])
 
     @mute_logger('odoo.addons.payment_paytabs_official.models.payment_transaction')
@@ -173,7 +178,9 @@ class TestPaymentTransaction(PayTabsCommon):
             'odoo.addons.payment.models.payment_provider.PaymentProvider._send_api_request',
             return_value=self.error_data,
         ):
-            rendering_values = tx._get_specific_rendering_values(None)
+            rendering_values = tx.with_context(
+                payment_safe_write=True
+            )._get_specific_rendering_values(None)
 
         self.assertEqual(rendering_values, {})
         self.assertEqual(tx.state, 'error')
@@ -185,7 +192,9 @@ class TestPaymentTransaction(PayTabsCommon):
             'odoo.addons.payment.models.payment_provider.PaymentProvider._send_api_request',
             side_effect=ValidationError("PayTabs: " + "Authentication failed"),
         ):
-            rendering_values = tx._get_specific_rendering_values(None)
+            rendering_values = tx.with_context(
+                payment_safe_write=True
+            )._get_specific_rendering_values(None)
 
         self.assertEqual(rendering_values, {})
         self.assertEqual(tx.state, 'error')
@@ -215,7 +224,7 @@ class TestPaymentTransaction(PayTabsCommon):
     def test_apply_updates_confirms_authorized_transaction(self):
         """ Test that an authorized payment sets the transaction as done. """
         tx = self._create_transaction('redirect')
-        tx._apply_updates(self.webhook_data)
+        tx.with_context(payment_safe_write=True)._apply_updates(self.webhook_data)
         self.assertEqual(tx.state, 'done')
         self.assertEqual(tx.provider_reference, 'TST2016700000692')
 
@@ -228,7 +237,7 @@ class TestPaymentTransaction(PayTabsCommon):
             'odoo.addons.payment.models.payment_transaction.PaymentTransaction'
             '._log_message_on_linked_documents'
         ) as log_mock:
-            tx._apply_updates(payload)
+            tx.with_context(payment_safe_write=True)._apply_updates(payload)
         self.assertEqual(tx.state, 'error')
         self.assertTrue(any(
             "on hold" in str(call.args[0]) for call in log_mock.call_args_list
@@ -241,7 +250,7 @@ class TestPaymentTransaction(PayTabsCommon):
         payload = dict(self.webhook_data, payment_result={
             'response_status': 'D', 'response_code': '316', 'response_message': "Insufficient funds"
         })
-        tx._apply_updates(payload)
+        tx.with_context(payment_safe_write=True)._apply_updates(payload)
         self.assertEqual(tx.state, 'error')
 
     @mute_logger('odoo.addons.payment_paytabs_official.models.payment_transaction')
@@ -255,7 +264,7 @@ class TestPaymentTransaction(PayTabsCommon):
             'odoo.addons.payment.models.payment_transaction.PaymentTransaction'
             '._log_message_on_linked_documents'
         ) as log_mock:
-            tx._apply_updates(payload)
+            tx.with_context(payment_safe_write=True)._apply_updates(payload)
         logged_messages = [str(call.args[0]) for call in log_mock.call_args_list]
         self.assertTrue(
             any("Insufficient funds (316)" in message for message in logged_messages)
@@ -266,21 +275,21 @@ class TestPaymentTransaction(PayTabsCommon):
         """ Test that a voided payment sets the transaction as canceled. """
         tx = self._create_transaction('redirect')
         payload = dict(self.webhook_data, payment_result={'response_status': 'V'})
-        tx._apply_updates(payload)
+        tx.with_context(payment_safe_write=True)._apply_updates(payload)
         self.assertEqual(tx.state, 'cancel')
 
     def test_apply_updates_cancels_customer_cancelled_transaction(self):
         """ Test that a payment cancelled by the customer sets the transaction as canceled. """
         tx = self._create_transaction('redirect')
         payload = dict(self.webhook_data, payment_result={'response_status': 'C'})
-        tx._apply_updates(payload)
+        tx.with_context(payment_safe_write=True)._apply_updates(payload)
         self.assertEqual(tx.state, 'cancel')
 
     def test_apply_updates_sets_pending_transaction_as_pending(self):
         """ Test that a pending payment sets the transaction as pending. """
         tx = self._create_transaction('redirect')
         payload = dict(self.webhook_data, payment_result={'response_status': 'P'})
-        tx._apply_updates(payload)
+        tx.with_context(payment_safe_write=True)._apply_updates(payload)
         self.assertEqual(tx.state, 'pending')
 
     @mute_logger('odoo.addons.payment_paytabs_official.models.payment_transaction')
@@ -289,7 +298,7 @@ class TestPaymentTransaction(PayTabsCommon):
         for status in ('E', 'X'):
             tx = self._create_transaction('redirect', reference=f'{self.reference}-{status}')
             payload = dict(self.webhook_data, payment_result={'response_status': status})
-            tx._apply_updates(payload)
+            tx.with_context(payment_safe_write=True)._apply_updates(payload)
             self.assertEqual(tx.state, 'error')
 
     @mute_logger('odoo.addons.payment_paytabs_official.models.payment_transaction')
@@ -297,7 +306,7 @@ class TestPaymentTransaction(PayTabsCommon):
         """ Test that data without a payment status sets the transaction in error. """
         tx = self._create_transaction('redirect')
         payload = dict(self.webhook_data, payment_result={})
-        tx._apply_updates(payload)
+        tx.with_context(payment_safe_write=True)._apply_updates(payload)
         self.assertEqual(tx.state, 'error')
 
     @mute_logger('odoo.addons.payment_paytabs_official.models.payment_transaction')
@@ -306,7 +315,7 @@ class TestPaymentTransaction(PayTabsCommon):
         for tran_type in ('Refund', 'Void', 'Capture', 'Release', 'refund'):
             tx = self._create_transaction('redirect', reference=f'{self.reference}-{tran_type}')
             payload = dict(self.webhook_data, tran_type=tran_type, tran_ref='OTHER')
-            tx._apply_updates(payload)
+            tx.with_context(payment_safe_write=True)._apply_updates(payload)
             self.assertEqual(tx.state, 'draft')
             self.assertFalse(tx.provider_reference)
 
@@ -318,7 +327,7 @@ class TestPaymentTransaction(PayTabsCommon):
         )
         refund_tx = source_tx._create_child_transaction(self.amount, is_refund=True)
         payload = dict(self.refund_data, tran_type='Sale')
-        refund_tx._apply_updates(payload)
+        refund_tx.with_context(payment_safe_write=True)._apply_updates(payload)
         self.assertEqual(refund_tx.state, 'draft')
 
     def test_apply_updates_matches_refund_on_previous_tran_ref(self):
@@ -331,13 +340,13 @@ class TestPaymentTransaction(PayTabsCommon):
             self.refund_data, tran_type='Sale', previous_tran_ref='TST2016700000692'
         )
         with patch('odoo.addons.base.models.ir_cron.IrCron._trigger'):
-            refund_tx._apply_updates(payload)
+            refund_tx.with_context(payment_safe_write=True)._apply_updates(payload)
         self.assertEqual(refund_tx.state, 'done')
 
     def test_apply_updates_sets_auth_data_as_authorized(self):
         """ Test that a successful authorization sets the transaction as authorized. """
         tx = self._create_transaction('redirect')
-        tx._apply_updates(self.auth_webhook_data)
+        tx.with_context(payment_safe_write=True)._apply_updates(self.auth_webhook_data)
         self.assertEqual(tx.state, 'authorized')
         self.assertEqual(tx.provider_reference, 'TST2016700000692')
 
@@ -345,7 +354,7 @@ class TestPaymentTransaction(PayTabsCommon):
         """ Test that other non follow-up transaction types are accepted as sales. """
         tx = self._create_transaction('redirect')
         payload = dict(self.webhook_data, tran_type='Register')
-        tx._apply_updates(payload)
+        tx.with_context(payment_safe_write=True)._apply_updates(payload)
         self.assertEqual(tx.state, 'done')
 
     @mute_logger('odoo.addons.payment_paytabs_official.models.payment_transaction')
@@ -353,7 +362,7 @@ class TestPaymentTransaction(PayTabsCommon):
         """ Test that capture data doesn't update the authorized source transaction. """
         source_tx = self._create_authorized_transaction()
         payload = dict(self.capture_data, cart_id=source_tx.reference)
-        source_tx._apply_updates(payload)
+        source_tx.with_context(payment_safe_write=True)._apply_updates(payload)
         self.assertEqual(source_tx.state, 'authorized')
         self.assertEqual(source_tx.provider_reference, 'TST2016700000692')
 
@@ -361,7 +370,7 @@ class TestPaymentTransaction(PayTabsCommon):
         """ Test that a full capture confirms the child and the source transaction. """
         source_tx = self._create_authorized_transaction()
         capture_tx = source_tx._create_child_transaction(self.amount)
-        capture_tx._apply_updates(self.capture_data)
+        capture_tx.with_context(payment_safe_write=True)._apply_updates(self.capture_data)
         self.assertEqual(capture_tx.state, 'done')
         self.assertEqual(capture_tx.provider_reference, 'TST2016700000694')
         self.assertEqual(source_tx.state, 'done')
@@ -371,7 +380,7 @@ class TestPaymentTransaction(PayTabsCommon):
         source_tx = self._create_authorized_transaction()
         capture_tx = source_tx._create_child_transaction(self.amount / 2)
         payload = dict(self.capture_data, cart_amount=str(self.amount / 2))
-        capture_tx._apply_updates(payload)
+        capture_tx.with_context(payment_safe_write=True)._apply_updates(payload)
         self.assertEqual(capture_tx.state, 'done')
         self.assertEqual(source_tx.state, 'authorized')
 
@@ -380,14 +389,14 @@ class TestPaymentTransaction(PayTabsCommon):
         source_tx = self._create_authorized_transaction()
         capture_tx = source_tx._create_child_transaction(self.amount)
         payload = dict(self.capture_data, tran_type='Sale')
-        capture_tx._apply_updates(payload)
+        capture_tx.with_context(payment_safe_write=True)._apply_updates(payload)
         self.assertEqual(capture_tx.state, 'done')
 
     def test_apply_updates_cancels_full_void(self):
         """ Test that a full void cancels the child and the source transaction. """
         source_tx = self._create_authorized_transaction()
         void_tx = source_tx._create_child_transaction(self.amount)
-        void_tx._apply_updates(self.void_data)
+        void_tx.with_context(payment_safe_write=True)._apply_updates(self.void_data)
         self.assertEqual(void_tx.state, 'cancel')
         self.assertEqual(void_tx.provider_reference, 'TST2016700000695')
         self.assertEqual(source_tx.state, 'cancel')
@@ -397,7 +406,7 @@ class TestPaymentTransaction(PayTabsCommon):
         source_tx = self._create_authorized_transaction()
         void_tx = source_tx._create_child_transaction(self.amount / 2)
         payload = dict(self.void_data, cart_amount=str(self.amount / 2))
-        void_tx._apply_updates(payload)
+        void_tx.with_context(payment_safe_write=True)._apply_updates(payload)
         self.assertEqual(void_tx.state, 'cancel')
         self.assertEqual(source_tx.state, 'authorized')
 
@@ -409,7 +418,9 @@ class TestPaymentTransaction(PayTabsCommon):
         with patch.object(
             type(capture_tx), '_log_message_on_linked_documents'
         ) as log_mock:
-            capture_tx._apply_updates(self.follow_up_error_data)
+            capture_tx.with_context(payment_safe_write=True)._apply_updates(
+                self.follow_up_error_data
+            )
         self.assertEqual(capture_tx.state, 'error')
         self.assertIn("capture of the transaction", capture_tx.state_message)
         self.assertIn("Previous transaction is on hold (120)", log_mock.call_args.args[0])
@@ -421,7 +432,7 @@ class TestPaymentTransaction(PayTabsCommon):
         source_tx = self._create_authorized_transaction()
         void_tx = source_tx._create_child_transaction(self.amount)
         payload = dict(self.follow_up_error_data, tran_type='Void')
-        void_tx._apply_updates(payload)
+        void_tx.with_context(payment_safe_write=True)._apply_updates(payload)
         self.assertEqual(void_tx.state, 'error')
         self.assertIn("void of the transaction", void_tx.state_message)
         self.assertEqual(source_tx.state, 'authorized')
@@ -433,7 +444,7 @@ class TestPaymentTransaction(PayTabsCommon):
         )
         refund_tx = source_tx._create_child_transaction(self.amount, is_refund=True)
         with patch('odoo.addons.base.models.ir_cron.IrCron._trigger') as trigger_mock:
-            refund_tx._apply_updates(self.refund_data)
+            refund_tx.with_context(payment_safe_write=True)._apply_updates(self.refund_data)
         self.assertEqual(refund_tx.state, 'done')
         self.assertEqual(refund_tx.provider_reference, 'TST2016700000693')
         self.assertEqual(trigger_mock.call_count, 1)
@@ -445,7 +456,9 @@ class TestPaymentTransaction(PayTabsCommon):
         )
         refund_tx = source_tx._create_child_transaction(self.amount, is_refund=True)
         with patch('odoo.addons.base.models.ir_cron.IrCron._trigger') as trigger_mock:
-            refund_tx._apply_updates(self.pending_refund_data)
+            refund_tx.with_context(payment_safe_write=True)._apply_updates(
+                self.pending_refund_data
+            )
         self.assertEqual(refund_tx.state, 'pending')
         self.assertEqual(trigger_mock.call_count, 1)
 
@@ -453,14 +466,14 @@ class TestPaymentTransaction(PayTabsCommon):
         """ Test that the post-processing cron is only triggered for refunds. """
         tx = self._create_transaction('redirect')
         with patch('odoo.addons.base.models.ir_cron.IrCron._trigger') as trigger_mock:
-            tx._apply_updates(self.webhook_data)
+            tx.with_context(payment_safe_write=True)._apply_updates(self.webhook_data)
         self.assertEqual(trigger_mock.call_count, 0)
 
     def test_process_sets_transaction_in_error_on_amount_mismatch(self):
         """ Test that webhook data with a different amount sets the transaction in error. """
         tx = self._create_transaction('redirect')
         payload = dict(self.webhook_data, cart_amount=str(self.amount + 1))
-        tx._process('paytabs', payload)
+        tx.with_context(payment_safe_write=True)._process(payload)
         self.assertEqual(tx.state, 'error')
 
     def test_process_sets_transaction_in_error_on_currency_mismatch(self):
@@ -468,13 +481,13 @@ class TestPaymentTransaction(PayTabsCommon):
         tx = self._create_transaction('redirect')
         other_currency = 'USD' if self.currency.name != 'USD' else 'EUR'
         payload = dict(self.webhook_data, cart_currency=other_currency)
-        tx._process('paytabs', payload)
+        tx.with_context(payment_safe_write=True)._process(payload)
         self.assertEqual(tx.state, 'error')
 
     def test_process_confirms_transaction_from_redirect_data(self):
         """ Test that redirect data, which carries no amount, still confirms the transaction. """
         tx = self._create_transaction('redirect')
-        tx._process('paytabs', self.return_data)
+        tx.with_context(payment_safe_write=True)._process(self.return_data)
         self.assertEqual(tx.state, 'done')
 
     @mute_logger('odoo.addons.payment_paytabs_official.models.payment_transaction')
@@ -482,13 +495,13 @@ class TestPaymentTransaction(PayTabsCommon):
         """ Test that an unknown payment status sets the transaction in error. """
         tx = self._create_transaction('redirect')
         payload = dict(self.webhook_data, payment_result={'response_status': 'Z'})
-        tx._apply_updates(payload)
+        tx.with_context(payment_safe_write=True)._apply_updates(payload)
         self.assertEqual(tx.state, 'error')
 
     def test_apply_updates_reads_the_redirect_status(self):
         """ Test that the status is also read from the redirect data. """
         tx = self._create_transaction('redirect')
-        tx._apply_updates(self.return_data)
+        tx.with_context(payment_safe_write=True)._apply_updates(self.return_data)
         self.assertEqual(tx.state, 'done')
 
     def test_refund_request_targets_the_source_transaction(self):
@@ -509,6 +522,8 @@ class TestPaymentTransaction(PayTabsCommon):
         self.assertEqual(payload['tran_ref'], 'TST2016700000692')
         self.assertEqual(payload['cart_amount'], self.amount)  # Sent as a positive amount.
         self.assertEqual(payload['plugin_info']['cart_name'], 'odoo')
+        self.assertEqual(refund_tx.state, 'draft')  # The response is only recorded.
+        self._run_processing()
         self.assertEqual(refund_tx.provider_reference, 'TST2016700000693')
         self.assertEqual(refund_tx.state, 'done')
 
@@ -544,6 +559,7 @@ class TestPaymentTransaction(PayTabsCommon):
         self.assertEqual(payload['tran_ref'], 'TST2016700000692')
         self.assertEqual(payload['cart_id'], capture_tx.reference)
         self.assertEqual(payload['cart_amount'], self.amount)
+        self._run_processing()
         self.assertEqual(capture_tx.provider_reference, 'TST2016700000694')
         self.assertEqual(capture_tx.state, 'done')
         self.assertEqual(source_tx.state, 'done')
@@ -561,6 +577,7 @@ class TestPaymentTransaction(PayTabsCommon):
             capture_tx = source_tx._capture(amount_to_capture=partial_amount)
 
         self.assertEqual(request_mock.call_args.kwargs['json']['cart_amount'], partial_amount)
+        self._run_processing()
         self.assertEqual(capture_tx.state, 'done')
         self.assertEqual(source_tx.state, 'authorized')
 
@@ -578,6 +595,7 @@ class TestPaymentTransaction(PayTabsCommon):
         self.assertEqual(payload['tran_type'], 'void')
         self.assertEqual(payload['tran_ref'], 'TST2016700000692')
         self.assertEqual(payload['cart_amount'], self.amount)
+        self._run_processing()
         self.assertEqual(void_tx.provider_reference, 'TST2016700000695')
         self.assertEqual(void_tx.state, 'cancel')
         self.assertEqual(source_tx.state, 'cancel')
@@ -597,6 +615,7 @@ class TestPaymentTransaction(PayTabsCommon):
         payload = request_mock.call_args.kwargs['json']
         self.assertEqual(payload['tran_type'], 'void')
         self.assertEqual(payload['cart_amount'], partial_amount)
+        self._run_processing()
         self.assertEqual(void_tx.state, 'cancel')
         self.assertEqual(source_tx.state, 'authorized')
 

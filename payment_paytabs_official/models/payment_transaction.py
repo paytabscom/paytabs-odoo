@@ -2,7 +2,7 @@
 
 from urllib.parse import parse_qsl, urlsplit
 
-from odoo import _, api, models
+from odoo import api, models
 from odoo.exceptions import ValidationError
 from odoo.tools import urls
 
@@ -73,7 +73,7 @@ class PaymentTransaction(models.Model):
                 payment_data.get('code'),
                 payment_data.get('trace'),
             )
-            self._set_error(_(
+            self._set_error(self.env._(
                 "An error occurred during the processing of your payment. Please try again."
             ))
             return {}
@@ -83,7 +83,7 @@ class PaymentTransaction(models.Model):
 
         # Extract the payment link URL and params and embed them in the redirect form.
         url_params = dict(parse_qsl(urlsplit(api_url).query))
-        return {'api_url': api_url, 'url_params': url_params}
+        return {'api_url': api_url, 'http_method': 'get', 'url_params': url_params}
 
     def _paytabs_prepare_paypage_payload(self):
         """ Create the payload for the payment page request based on the transaction values.
@@ -139,7 +139,7 @@ class PaymentTransaction(models.Model):
             return super()._send_refund_request()
 
         self._paytabs_send_follow_up_request(
-            'refund', _("Refund of %s", self.source_transaction_id.reference)
+            'refund', self.env._("Refund of %s", self.source_transaction_id.reference)
         )
 
     def _send_capture_request(self):
@@ -148,7 +148,7 @@ class PaymentTransaction(models.Model):
             return super()._send_capture_request()
 
         self._paytabs_send_follow_up_request(
-            'capture', _("Capture of %s", self.source_transaction_id.reference)
+            'capture', self.env._("Capture of %s", self.source_transaction_id.reference)
         )
 
     def _send_void_request(self):
@@ -158,14 +158,15 @@ class PaymentTransaction(models.Model):
 
         # PayTabs accepts 'void' for both full and partial releases of the authorized amount.
         self._paytabs_send_follow_up_request(
-            'void', _("Void of %s", self.source_transaction_id.reference)
+            'void', self.env._("Void of %s", self.source_transaction_id.reference)
         )
 
     def _paytabs_send_follow_up_request(self, tran_type, description):
         """ Send a follow-up request on the source transaction and process the response.
 
         Follow-ups (refund, capture, void, release) reference the source transaction and return
-        their result immediately, without customer interaction.
+        their result immediately, without customer interaction. The result is recorded as payment
+        data and applied by the processing cron, like a webhook notification.
 
         Note: `self.ensure_one()`
 
@@ -191,16 +192,16 @@ class PaymentTransaction(models.Model):
 
         # PayTabs reports business errors with an HTTP 200 status and no payment result.
         if not payment_data.get('payment_result'):
-            raise ValidationError("PayTabs: " + _(
+            raise ValidationError("PayTabs: " + self.env._(
                 "The %(tran_type)s request was rejected. Reason: %(message)s (code %(code)s)",
                 tran_type=tran_type,
                 message=payment_data.get('message'),
                 code=payment_data.get('code'),
             ))
 
-        # The follow-up is assigned its own transaction reference on PayTabs' side.
-        self.provider_reference = payment_data.get('tran_ref')
-        self._process('paytabs', payment_data)
+        # The follow-up is assigned its own transaction reference on PayTabs' side; it is read from
+        # `tran_ref` in `_apply_updates`.
+        self._record(payment_data)
 
     # === BUSINESS METHODS - PROCESSING === #
 
@@ -265,7 +266,7 @@ class PaymentTransaction(models.Model):
         payment_result = payment_data.get('payment_result', {})
         payment_status = payment_result.get('response_status') or payment_data.get('respStatus')
         if not payment_status:
-            self._set_error(_("Received data with missing payment status."))
+            self._set_error(self.env._("Received data with missing payment status."))
             return
 
         if payment_status in const.PAYMENT_STATUS_MAPPING['pending']:
@@ -291,14 +292,16 @@ class PaymentTransaction(models.Model):
             if self._paytabs_is_capture_or_void_child():
                 # Capture and void children are only seen by internal users.
                 if tran_type in const.VOID_TRAN_TYPES:
-                    self._set_error(_("The void of the transaction %s failed.", self.reference))
+                    self._set_error(
+                        self.env._("The void of the transaction %s failed.", self.reference)
+                    )
                 else:
                     self._set_error(
-                        _("The capture of the transaction %s failed.", self.reference)
+                        self.env._("The capture of the transaction %s failed.", self.reference)
                     )
             else:
                 # Keep the customer-facing message generic; the gateway's reason goes to the chatter.
-                self._set_error(_(
+                self._set_error(self.env._(
                     "An error occurred during the processing of your payment. Please try again."
                 ))
             self._paytabs_log_decline_reason(payment_status, response_code, response_message)
@@ -306,10 +309,10 @@ class PaymentTransaction(models.Model):
             _logger.warning(
                 "The transaction %s was authorized but put on hold by PayTabs.", self.reference
             )
-            self._set_error(_(
+            self._set_error(self.env._(
                 "Your payment could not be completed. Please contact us or try again."
             ))
-            self._log_message_on_linked_documents(_(
+            self._log_message_on_linked_documents(self.env._(
                 "PayTabs authorized the transaction %(ref)s but its risk screening put the amount"
                 " on hold (status H). PayTabs refuses captures and voids sent from Odoo while the"
                 " hold lasts; review the transaction in the PayTabs dashboard and capture or void"
@@ -321,7 +324,9 @@ class PaymentTransaction(models.Model):
                 "Received data for transaction %s with invalid payment status: %s.",
                 self.reference, payment_status,
             )
-            self._set_error(_("Received data with invalid status: %s.", payment_status))
+            self._set_error(
+                self.env._("Received data with invalid status: %s.", payment_status)
+            )
 
         # Immediately post-process the transaction if it is a refund, as the post-processing will
         # not be triggered by a customer browsing the transaction from the portal.
@@ -353,20 +358,20 @@ class PaymentTransaction(models.Model):
         """
         self.ensure_one()
         status_labels = {
-            'D': _("declined"),
-            'E': _("failed"),
-            'X': _("expired"),
+            'D': self.env._("declined"),
+            'E': self.env._("failed"),
+            'X': self.env._("expired"),
         }
-        reason = response_message or _("No reason provided")
+        reason = response_message or self.env._("No reason provided")
         if response_code:
             reason = f'{reason} ({response_code})'
         if self.operation == 'refund':
-            tx_label = _("refund")
+            tx_label = self.env._("refund")
         elif self._paytabs_is_capture_or_void_child():
-            tx_label = _("capture or void")
+            tx_label = self.env._("capture or void")
         else:
-            tx_label = _("transaction")
-        message = _(
+            tx_label = self.env._("transaction")
+        message = self.env._(
             "PayTabs reported the %(tx_label)s %(ref)s as %(status)s. Reason: %(reason)s",
             tx_label=tx_label,
             ref=self._get_html_link(),

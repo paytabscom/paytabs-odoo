@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <!-- The payment methods available depend on the region and on the PayTabs profile; card is
+         common to all. See https://site.paytabs.com/en/payment-methods/ -->
+
+    <!-- === PRIMARY PAYMENT METHODS === -->
+
+    <record id="payment_method_aman" model="payment.method">
+        <field name="name">Aman</field>
+        <field name="code">aman</field>
+        <field name="provider_id" ref="payment_paytabs_official.payment_provider_paytabs"/>
+        <field name="image" type="bytes" file="payment/static/img/aman.png"/>
+        <field name="support_refund">partial</field>
+        <field name="supported_country_ids" eval="[Command.set([ref('base.eg')])]"/>
+        <field name="supported_currency_ids" eval="[Command.set([ref('base.EGP')])]"/>
+    </record>
+
+    <record id="payment_method_card" model="payment.method">
+        <field name="name">Card</field>
+        <field name="code">card</field>
+        <field name="sequence">10</field>
+        <field name="provider_id" ref="payment_paytabs_official.payment_provider_paytabs"/>
+        <field name="image" type="bytes" file="payment/static/img/card.png"/>
+        <field name="support_manual_capture">partial</field>
+        <field name="support_refund">partial</field>
+    </record>
+
+    <record id="payment_method_forsa" model="payment.method">
+        <field name="name">Forsa</field>
+        <field name="code">forsa</field>
+        <field name="provider_id" ref="payment_paytabs_official.payment_provider_paytabs"/>
+        <field name="image" type="bytes" file="payment/static/img/forsa.png"/>
+        <field name="support_refund">partial</field>
+        <field name="supported_country_ids" eval="[Command.set([ref('base.eg')])]"/>
+        <field name="supported_currency_ids" eval="[Command.set([ref('base.EGP')])]"/>
+    </record>
+
+    <record id="payment_method_halan" model="payment.method">
+        <field name="name">Halan</field>
+        <field name="code">halan</field>
+        <field name="provider_id" ref="payment_paytabs_official.payment_provider_paytabs"/>
+        <field name="image" type="bytes" file="payment/static/img/halan.png"/>
+        <field name="support_refund">partial</field>
+        <field name="supported_country_ids" eval="[Command.set([ref('base.eg')])]"/>
+        <field name="supported_currency_ids" eval="[Command.set([ref('base.EGP')])]"/>
+    </record>
+
+    <record id="payment_method_installments_eg" model="payment.method">
+        <field name="name">Bank Installments</field>
+        <field name="code">installments_eg</field>
+        <field name="provider_id" ref="payment_paytabs_official.payment_provider_paytabs"/>
+        <field name="image" type="bytes" file="payment/static/img/bank.png"/>
+        <field name="support_refund">partial</field>
+        <field name="supported_country_ids" eval="[Command.set([ref('base.eg')])]"/>
+        <field name="supported_currency_ids" eval="[Command.set([ref('base.EGP')])]"/>
+    </record>
+
+    <record id="payment_method_knet" model="payment.method">
+        <field name="name">KNET</field>
+        <field name="code">knet</field>
+        <field name="provider_id" ref="payment_paytabs_official.payment_provider_paytabs"/>
+        <field name="image" type="bytes" file="payment/static/img/knet.png"/>
+        <field name="support_refund">partial</field>
+        <field name="supported_country_ids" eval="[Command.set([ref('base.kw')])]"/>
+        <field name="supported_currency_ids" eval="[Command.set([ref('base.KWD')])]"/>
+    </record>
+
+    <record id="payment_method_mada" model="payment.method">
+        <field name="name">Mada</field>
+        <field name="code">mada</field>
+        <field name="provider_id" ref="payment_paytabs_official.payment_provider_paytabs"/>
+        <field name="image" type="bytes" file="payment/static/img/mada.png"/>
+        <field name="support_refund">partial</field>
+        <field name="supported_country_ids" eval="[Command.set([ref('base.sa'), ref('base.ae')])]"/>
+        <field name="supported_currency_ids" eval="[Command.set([ref('base.SAR')])]"/>
+    </record>
+
+    <record id="payment_method_paypal" model="payment.method">
+        <field name="name">Paypal</field>
+        <field name="code">paypal</field>
+        <field name="sequence">20</field>
+        <field name="provider_id" ref="payment_paytabs_official.payment_provider_paytabs"/>
+        <field name="image" type="bytes" file="payment/static/img/paypal.png"/>
+        <field name="support_refund">partial</field>
+    </record>
+
+    <record id="payment_method_samsung_pay" model="payment.method">
+        <field name="name">Samsung Pay</field>
+        <field name="code">samsung_pay</field>
+        <field name="provider_id" ref="payment_paytabs_official.payment_provider_paytabs"/>
+        <field name="image" type="bytes" file="payment/static/img/samsung_pay.png"/>
+        <field name="support_refund">partial</field>
+    </record>
+
+    <record id="payment_method_souhoola" model="payment.method">
+        <field name="name">Souhoola</field>
+        <field name="code">souhoola</field>
+        <field name="provider_id" ref="payment_paytabs_official.payment_provider_paytabs"/>
+        <field name="image" type="bytes" file="payment/static/img/souhoola.png"/>
+        <field name="support_refund">partial</field>
+        <field name="supported_country_ids" eval="[Command.set([ref('base.eg')])]"/>
+        <field name="supported_currency_ids" eval="[Command.set([ref('base.EGP')])]"/>
+    </record>
+
+    <record id="payment_method_stcpay" model="payment.method">
+        <field name="name">STCPay</field>
+        <field name="code">stcpay</field>
+        <field name="provider_id" ref="payment_paytabs_official.payment_provider_paytabs"/>
+        <field name="image" type="bytes" file="payment/static/img/stcpay.png"/>
+        <field name="support_refund">partial</field>
+        <field name="supported_country_ids" eval="[Command.set([ref('base.sa')])]"/>
+        <field name="supported_currency_ids" eval="[Command.set([ref('base.SAR')])]"/>
+    </record>
+
+    <record id="payment_method_tabby" model="payment.method">
+        <field name="name">Tabby</field>
+        <field name="code">tabby</field>
+        <field name="provider_id" ref="payment_paytabs_official.payment_provider_paytabs"/>
+        <field name="image" type="bytes" file="payment/static/img/tabby.png"/>
+        <field name="support_refund">partial</field>
+        <field name="supported_country_ids" eval="[Command.set([ref('base.ae'), ref('base.sa')])]"/>
+        <field name="supported_currency_ids" eval="[Command.set([ref('base.AED'), ref('base.SAR')])]"/>
+    </record>
+
+    <record id="payment_method_tamara" model="payment.method">
+        <field name="name">Tamara</field>
+        <field name="code">tamara</field>
+        <field name="provider_id" ref="payment_paytabs_official.payment_provider_paytabs"/>
+        <field name="image" type="bytes" file="payment/static/img/tamara.png"/>
+        <field name="support_refund">partial</field>
+        <field name="supported_country_ids" eval="[Command.set([ref('base.ae'), ref('base.sa')])]"/>
+        <field name="supported_currency_ids" eval="[Command.set([ref('base.AED'), ref('base.SAR')])]"/>
+    </record>
+
+    <record id="payment_method_valu" model="payment.method">
+        <field name="name">ValU</field>
+        <field name="code">valu</field>
+        <field name="provider_id" ref="payment_paytabs_official.payment_provider_paytabs"/>
+        <field name="image" type="bytes" file="payment/static/img/valu.png"/>
+        <field name="support_refund">partial</field>
+        <field name="supported_country_ids" eval="[Command.set([ref('base.eg')])]"/>
+        <field name="supported_currency_ids" eval="[Command.set([ref('base.EGP')])]"/>
+    </record>
+
+    <!-- === BRANDS === -->
+
+    <record id="payment_method_amex" model="payment.method">
+        <field name="name">American Express</field>
+        <field name="code">amex</field>
+        <field name="primary_payment_method_id" eval="ref('payment_paytabs_official.payment_method_card')"/>
+        <field name="provider_id" ref="payment_paytabs_official.payment_provider_paytabs"/>
+        <field name="image" type="bytes" file="payment/static/img/amex.png"/>
+    </record>
+
+    <record id="payment_method_mastercard" model="payment.method">
+        <field name="name">MasterCard</field>
+        <field name="code">mastercard</field>
+        <field name="primary_payment_method_id" eval="ref('payment_paytabs_official.payment_method_card')"/>
+        <field name="provider_id" ref="payment_paytabs_official.payment_provider_paytabs"/>
+        <field name="image" type="bytes" file="payment/static/img/mastercard.png"/>
+    </record>
+
+    <record id="payment_method_meeza" model="payment.method">
+        <field name="name">Meeza</field>
+        <field name="code">meeza</field>
+        <field name="primary_payment_method_id" eval="ref('payment_paytabs_official.payment_method_card')"/>
+        <field name="provider_id" ref="payment_paytabs_official.payment_provider_paytabs"/>
+        <field name="image" type="bytes" file="payment/static/img/meeza.png"/>
+    </record>
+
+    <record id="payment_method_unionpay" model="payment.method">
+        <field name="name">UnionPay</field>
+        <field name="code">unionpay</field>
+        <field name="primary_payment_method_id" eval="ref('payment_paytabs_official.payment_method_card')"/>
+        <field name="provider_id" ref="payment_paytabs_official.payment_provider_paytabs"/>
+        <field name="image" type="bytes" file="payment/static/img/unionpay.png"/>
+    </record>
+
+    <record id="payment_method_visa" model="payment.method">
+        <field name="name">VISA</field>
+        <field name="code">visa</field>
+        <field name="primary_payment_method_id" eval="ref('payment_paytabs_official.payment_method_card')"/>
+        <field name="provider_id" ref="payment_paytabs_official.payment_provider_paytabs"/>
+        <field name="image" type="bytes" file="payment/static/img/visa.png"/>
+    </record>
+
+</odoo>

@@ -82,7 +82,7 @@ class PayTabsController(http.Controller):
                 request.httprequest.data, received_signature, tx_sudo, is_redirect=False
             )
             self._verify_profile(data, tx_sudo, required=True)
-            tx_sudo._process('paytabs', data)
+            tx_sudo._record(data)  # Processed asynchronously by the processing cron.
 
         return request.make_json_response('')  # Acknowledge the notification.
 

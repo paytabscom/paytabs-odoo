@@ -127,7 +127,7 @@ class PaymentProvider(models.Model):
         """ Return the base URL to embed in the `return` or `callback` URL.
 
         PayTabs rejects payment requests whose callback URL is not publicly reachable, and only
-        POSTs the signed return data to an HTTPS URL. When the provider is in test mode and the
+        POSTs the signed return data to an HTTPS URL. When the provider is not live and the
         tunnel URL is set and enabled for the requested URL type, it overrides the instance base
         URL. A tunnel URL left over from development is ignored once the provider goes live.
 
@@ -136,7 +136,7 @@ class PaymentProvider(models.Model):
         :rtype: str
         """
         self.ensure_one()
-        use_tunnel = self.state == 'test' and {
+        use_tunnel = not self.is_live and {
             'return': self.paytabs_tunnel_return,
             'callback': self.paytabs_tunnel_callback,
         }[url_type]

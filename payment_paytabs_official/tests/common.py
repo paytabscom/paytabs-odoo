@@ -1,7 +1,5 @@
 # Copyright (C) PayTabs. Licensed under LGPL-3; see the LICENSE file for details.
 
-from odoo.fields import Command
-
 from odoo.addons.payment.tests.common import PaymentCommon
 
 
@@ -15,8 +13,14 @@ class PayTabsCommon(PaymentCommon):
             'paytabs_region': 'ARE',
             'paytabs_profile_id': 12345,
             'paytabs_server_key': 'SJKLMNOPQR-XYZABCDEFG-HIJKLMNOPQ',
-            'payment_method_ids': [Command.set([cls.env.ref('payment.payment_method_card').id])],
         })
+
+        # Payment methods belong to their provider; enable the card method for the tests.
+        cls.payment_method = cls.env.ref('payment_paytabs_official.payment_method_card')
+        cls.payment_method.active = True
+        cls.payment_methods = cls.payment_method
+        cls.payment_method_id = cls.payment_method.id
+        cls.payment_method_code = cls.payment_method.code
 
         cls.paypage_data = {
             'tran_ref': 'TST2016700000692',

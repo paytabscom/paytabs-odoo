@@ -5,7 +5,6 @@ import hmac
 from unittest.mock import Mock, patch
 
 from odoo.exceptions import ValidationError
-from odoo.fields import Command
 from odoo.tests import tagged
 from odoo.tools import is_html_empty
 
@@ -31,9 +30,8 @@ class TestPaymentProvider(PayTabsCommon):
 
     def test_manual_capture_is_refused_with_unsupported_payment_methods(self):
         """ Test that manual capture can't be enabled with payment methods that don't support it. """
-        mada = self.env.ref('payment.payment_method_mada')
+        mada = self.env.ref('payment_paytabs_official.payment_method_mada')
         mada.active = True  # The constraint only considers active payment methods.
-        self.provider.payment_method_ids = [Command.link(mada.id)]
         with self.assertRaises(ValidationError):
             self.provider.capture_manually = True
 
@@ -67,9 +65,9 @@ class TestPaymentProvider(PayTabsCommon):
 
     def test_endpoint_does_not_depend_on_the_provider_state(self):
         """ Test that test and live providers use the same endpoint. """
-        self.provider.state = 'test'
+        self.provider.is_live = False
         test_url = self.provider._build_request_url('payment/request')
-        self.provider.state = 'enabled'
+        self.provider.is_live = True
         self.assertEqual(self.provider._build_request_url('payment/request'), test_url)
 
     def test_request_url_is_built_with_a_leading_slash(self):
@@ -186,13 +184,9 @@ class TestPaymentProvider(PayTabsCommon):
         self.assertEqual(self.provider._parse_response_error(response), "Unknown error")
 
     def _render_card_method_label(self):
-        card_pm = self.env.ref('payment.payment_method_card')
         html = self.env['ir.qweb']._render('payment.method_form', {
-            'pm_sudo': card_pm,
-            'providers_sudo': self.provider,
+            'pm_sudo': self.payment_method,
             'is_selected': False,
-            'mode': 'payment',
-            'show_tokenize_input_mapping': {self.provider.id: False},
             'is_html_empty': is_html_empty,
         })
         return str(html)

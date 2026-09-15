@@ -18,14 +18,14 @@ class TestProcessingFlows(PayTabsCommon, PaymentHttpCommon):
 
     @mute_logger('odoo.addons.payment_paytabs_official.controllers.main')
     def test_redirect_notification_does_not_trigger_processing(self):
-        """ Test that the return route never processes the transaction. """
+        """ Test that the return route never records payment data. """
         self._create_transaction('redirect')
         url = self._build_url(PayTabsController._return_url)
         with patch(
-            'odoo.addons.payment.models.payment_transaction.PaymentTransaction._process'
-        ) as process_mock:
+            'odoo.addons.payment.models.payment_transaction.PaymentTransaction._record'
+        ) as record_mock:
             self._make_http_post_request(url, data=self.return_data)
-        self.assertEqual(process_mock.call_count, 0)
+        self.assertEqual(record_mock.call_count, 0)
 
     @mute_logger('odoo.addons.payment_paytabs_official.controllers.main')
     def test_redirect_notification_does_not_trigger_signature_check(self):
@@ -40,16 +40,16 @@ class TestProcessingFlows(PayTabsCommon, PaymentHttpCommon):
 
     @mute_logger('odoo.addons.payment_paytabs_official.controllers.main')
     def test_webhook_notification_triggers_processing(self):
-        """ Test that receiving a valid webhook notification triggers the processing. """
+        """ Test that receiving a valid webhook notification records the payment data. """
         self._create_transaction('redirect')
         url = self._build_url(PayTabsController._webhook_url)
         with patch(
             'odoo.addons.payment_paytabs_official.controllers.main.PayTabsController._verify_signature'
         ), patch(
-            'odoo.addons.payment.models.payment_transaction.PaymentTransaction._process'
-        ) as process_mock:
+            'odoo.addons.payment.models.payment_transaction.PaymentTransaction._record'
+        ) as record_mock:
             self._make_json_request(url, data=self.webhook_data)
-        self.assertEqual(process_mock.call_count, 1)
+        self.assertEqual(record_mock.call_count, 1)
 
     @mute_logger('odoo.addons.payment_paytabs_official.controllers.main')
     def test_webhook_notification_triggers_signature_check(self):
@@ -57,7 +57,7 @@ class TestProcessingFlows(PayTabsCommon, PaymentHttpCommon):
         self._create_transaction('redirect')
         url = self._build_url(PayTabsController._webhook_url)
         with patch(
-            'odoo.addons.payment.models.payment_transaction.PaymentTransaction._process'
+            'odoo.addons.payment.models.payment_transaction.PaymentTransaction._record'
         ), patch(
             'odoo.addons.payment_paytabs_official.controllers.main.PayTabsController._verify_signature'
         ) as signature_check_mock:
@@ -76,6 +76,8 @@ class TestProcessingFlows(PayTabsCommon, PaymentHttpCommon):
             headers={'Content-Type': 'application/json', 'signature': signature},
         )
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(tx.state, 'draft')  # The data is only recorded by the webhook.
+        self._run_processing()
         self.assertEqual(tx.state, 'done')
         self.assertEqual(tx.provider_reference, self.webhook_data['tran_ref'])
 
@@ -91,6 +93,7 @@ class TestProcessingFlows(PayTabsCommon, PaymentHttpCommon):
             headers={'Content-Type': 'application/json', 'signature': 'dummy'},
         )
         self.assertEqual(response.status_code, 403)
+        self._run_processing()
         self.assertEqual(tx.state, 'draft')
 
     @mute_logger('odoo.addons.payment_paytabs_official.controllers.main')
@@ -100,6 +103,7 @@ class TestProcessingFlows(PayTabsCommon, PaymentHttpCommon):
         url = self._build_url(PayTabsController._webhook_url)
         response = self._make_json_request(url, data=self.webhook_data)
         self.assertEqual(response.status_code, 403)
+        self._run_processing()
         self.assertEqual(tx.state, 'draft')
 
     @mute_logger('odoo.addons.payment_paytabs_official.controllers.main')
@@ -116,6 +120,7 @@ class TestProcessingFlows(PayTabsCommon, PaymentHttpCommon):
             headers={'Content-Type': 'application/json', 'signature': signature},
         )
         self.assertEqual(response.status_code, 403)
+        self._run_processing()
         self.assertEqual(tx.state, 'draft')
 
     @mute_logger('odoo.addons.payment_paytabs_official.controllers.main')
@@ -131,6 +136,7 @@ class TestProcessingFlows(PayTabsCommon, PaymentHttpCommon):
             headers={'Content-Type': 'application/json', 'signature': signature},
         )
         self.assertEqual(response.status_code, 403)
+        self._run_processing()
         self.assertEqual(tx.state, 'draft')
 
     @mute_logger('odoo.addons.payment_paytabs_official.controllers.main')
@@ -163,6 +169,7 @@ class TestProcessingFlows(PayTabsCommon, PaymentHttpCommon):
             headers={'Content-Type': 'application/json', 'signature': signature},
         )
         self.assertEqual(response.status_code, 200)
+        self._run_processing()
         self.assertEqual(tx.state, 'authorized')
 
     def test_webhook_notification_for_capture_is_routed_to_the_child_transaction(self):
@@ -176,6 +183,7 @@ class TestProcessingFlows(PayTabsCommon, PaymentHttpCommon):
         for _i in range(2):  # PayTabs may send the same notification more than once.
             response = self.url_open(url, data=raw_body, headers=headers)
             self.assertEqual(response.status_code, 200)
+        self._run_processing()
         self.assertEqual(capture_tx.state, 'done')
         self.assertEqual(capture_tx.provider_reference, 'TST2016700000694')
         self.assertEqual(source_tx.state, 'done')
@@ -190,6 +198,7 @@ class TestProcessingFlows(PayTabsCommon, PaymentHttpCommon):
         response = self._make_http_post_request(url, data=data)
         self.assertEqual(response.status_code, 200)  # Redirected to /payment/status.
         self.assertTrue(response.url.endswith('/payment/status'))
+        self._run_processing()
         self.assertEqual(tx.state, 'draft')  # Only the webhook updates the transaction.
 
     @mute_logger('odoo.addons.payment_paytabs_official.controllers.main')

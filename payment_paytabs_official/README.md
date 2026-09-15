@@ -6,7 +6,7 @@ Official Odoo payment provider module for PayTabs
 
 ## Requirements
 
-- Odoo **19.0**
+- Odoo **saas~19.4** (this branch; use the `19.0` branch for Odoo 19.0)
 - The `payment` module (installed automatically as a dependency)
 - A PayTabs merchant account with a **Profile ID** and a **Server Key**
 
@@ -195,6 +195,9 @@ with the `signature` header) and rejected if the signature does not match.
 
 ## Module History
 
+- `saas~19.4.1.0.0`
+  - Port to Odoo saas~19.4: provider `is_live` flag, provider-owned payment methods, new
+    `payment.data` processing pipeline.
 - `19.0.1.0.0`
   - The first version of the module is released: hosted payment page, callback processing,
     refunds, manual capture and void.
