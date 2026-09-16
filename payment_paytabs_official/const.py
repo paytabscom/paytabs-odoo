@@ -43,8 +43,15 @@ DEFAULT_PAYMENT_METHOD_CODES = {
     'visa',
     'mastercard',
     'amex',
-    'meeza',
+    'maestro',
+    'jcb',
+    'diners',
+    'discover',
     'unionpay',
+    'rupay',
+    'dankort',
+    'meeza',
+    'omannet',
 }
 
 # Mapping of payment method codes to PayTabs codes, for the `payment_methods` request parameter.
@@ -53,6 +60,7 @@ DEFAULT_PAYMENT_METHOD_CODES = {
 PAYMENT_METHODS_MAPPING = {
     'aman': 'aman',
     'forsa': 'forsa',
+    'google_pay': 'google',
     'halan': 'halan',
     'installments_eg': 'installment',
     'knet': 'knet',

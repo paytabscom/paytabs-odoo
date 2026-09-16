@@ -12,7 +12,9 @@
         <field name="payment_method_ids"
                eval="[Command.set([
                          ref('payment.payment_method_aman'),
+                         ref('payment.payment_method_benefit'),
                          ref('payment.payment_method_card'),
+                         ref('payment.payment_method_contact'),
                          ref('payment.payment_method_forsa'),
                          ref('payment.payment_method_halan'),
                          ref('payment.payment_method_installments_eg'),

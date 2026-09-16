@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+
+    <!-- Google Pay is not shipped by the `payment` module in Odoo 19.0. The method is linked to the
+         provider from this side (rather than from `payment_provider_data.xml`) so that upgrading an
+         existing install, where the noupdate provider record is not rewritten, still attaches it. -->
+    <record id="payment_method_google_pay" model="payment.method">
+        <field name="name">Google Pay</field>
+        <field name="code">google_pay</field>
+        <field name="sequence">1000</field>
+        <field name="active">False</field>
+        <field name="image" type="base64" file="payment/static/img/google_pay.png"/>
+        <field name="support_tokenization">False</field>
+        <field name="support_express_checkout">False</field>
+        <field name="support_manual_capture">partial</field>
+        <field name="support_refund">partial</field>
+        <field name="provider_ids" eval="[Command.link(ref('payment_provider_paytabs'))]"/>
+    </record>
+
+</odoo>
