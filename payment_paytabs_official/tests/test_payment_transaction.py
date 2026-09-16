@@ -233,9 +233,9 @@ class TestPaymentTransaction(PayTabsCommon):
         """ Test that an authorization hold is set in error and reported to the merchant. """
         tx = self._create_transaction('redirect')
         payload = dict(self.webhook_data, payment_result={'response_status': 'H'})
-        with patch(
-            'odoo.addons.payment.models.payment_transaction.PaymentTransaction'
-            '._log_message_on_linked_documents'
+        # Patch the registry model: `account_payment` overrides the method without calling super.
+        with patch.object(
+            self.env.registry['payment.transaction'], '_log_message_on_linked_documents'
         ) as log_mock:
             tx.with_context(payment_safe_write=True)._apply_updates(payload)
         self.assertEqual(tx.state, 'error')
@@ -260,9 +260,8 @@ class TestPaymentTransaction(PayTabsCommon):
         payload = dict(self.webhook_data, payment_result={
             'response_status': 'D', 'response_code': '316', 'response_message': "Insufficient funds"
         })
-        with patch(
-            'odoo.addons.payment.models.payment_transaction.PaymentTransaction'
-            '._log_message_on_linked_documents'
+        with patch.object(
+            self.env.registry['payment.transaction'], '_log_message_on_linked_documents'
         ) as log_mock:
             tx.with_context(payment_safe_write=True)._apply_updates(payload)
         logged_messages = [str(call.args[0]) for call in log_mock.call_args_list]
@@ -462,11 +461,28 @@ class TestPaymentTransaction(PayTabsCommon):
         self.assertEqual(refund_tx.state, 'pending')
         self.assertEqual(trigger_mock.call_count, 1)
 
+    def test_apply_updates_triggers_the_cron_for_captures(self):
+        """ Test that a confirmed capture schedules its post-processing to create the payment. """
+        source_tx = self._create_authorized_transaction()
+        capture_tx = source_tx._create_child_transaction(self.amount)
+        with patch('odoo.addons.base.models.ir_cron.IrCron._trigger') as trigger_mock:
+            capture_tx.with_context(payment_safe_write=True)._apply_updates(self.capture_data)
+        self.assertEqual(capture_tx.state, 'done')
+        self.assertEqual(trigger_mock.call_count, 1)
+
     def test_apply_updates_does_not_trigger_the_cron_for_sale_transactions(self):
-        """ Test that the post-processing cron is only triggered for refunds. """
+        """ Test that the post-processing cron is only triggered for follow-up transactions. """
         tx = self._create_transaction('redirect')
         with patch('odoo.addons.base.models.ir_cron.IrCron._trigger') as trigger_mock:
             tx.with_context(payment_safe_write=True)._apply_updates(self.webhook_data)
+        self.assertEqual(trigger_mock.call_count, 0)
+
+    def test_apply_updates_does_not_trigger_the_cron_for_auth_transactions(self):
+        """ Test that an authorization is not post-processed before it is captured. """
+        tx = self._create_transaction('redirect')
+        with patch('odoo.addons.base.models.ir_cron.IrCron._trigger') as trigger_mock:
+            tx.with_context(payment_safe_write=True)._apply_updates(self.auth_webhook_data)
+        self.assertEqual(tx.state, 'authorized')
         self.assertEqual(trigger_mock.call_count, 0)
 
     def test_process_sets_transaction_in_error_on_amount_mismatch(self):
@@ -526,6 +542,36 @@ class TestPaymentTransaction(PayTabsCommon):
         self._run_processing()
         self.assertEqual(refund_tx.provider_reference, 'TST2016700000693')
         self.assertEqual(refund_tx.state, 'done')
+
+    def test_refund_of_a_capture_targets_the_capture_transaction(self):
+        """ Test that refunding a captured amount refers to the tran_ref of the capture, not of the
+        authorization, as PayTabs only refunds settled transactions. """
+        source_tx = self._create_authorized_transaction()
+        with patch(
+            'odoo.addons.payment.models.payment_provider.PaymentProvider._send_api_request',
+            return_value=self.capture_data,
+        ):
+            capture_tx = source_tx._capture()
+        self._run_processing()
+        self.assertEqual(capture_tx.state, 'done')
+        self.assertEqual(capture_tx.provider_reference, 'TST2016700000694')
+
+        refund_data = dict(self.refund_data, previous_tran_ref='TST2016700000694')
+        with patch(
+            'odoo.addons.payment.models.payment_provider.PaymentProvider._send_api_request',
+            return_value=refund_data,
+        ) as request_mock:
+            refund_tx = capture_tx._refund()
+
+        payload = request_mock.call_args.kwargs['json']
+        self.assertEqual(payload['tran_type'], 'refund')
+        self.assertEqual(payload['tran_ref'], 'TST2016700000694')  # The capture's reference.
+        self.assertEqual(payload['cart_amount'], self.amount)
+        self.assertEqual(refund_tx.source_transaction_id, capture_tx)
+        self.assertEqual(refund_tx.reference, f'R-{capture_tx.reference}')
+        self._run_processing()
+        self.assertEqual(refund_tx.state, 'done')
+        self.assertEqual(refund_tx.provider_reference, 'TST2016700000693')
 
     def test_refund_request_handles_business_errors(self):
         """ Test that a refund rejected with an HTTP 200 response sets the refund in error. """

@@ -13,6 +13,7 @@ class PayTabsCommon(PaymentCommon):
             'paytabs_region': 'ARE',
             'paytabs_profile_id': 12345,
             'paytabs_server_key': 'SJKLMNOPQR-XYZABCDEFG-HIJKLMNOPQ',
+            'capture_manually': False,  # Tests enable it explicitly; don't depend on the DB state.
         })
 
         # Payment methods belong to their provider; enable the card method for the tests.

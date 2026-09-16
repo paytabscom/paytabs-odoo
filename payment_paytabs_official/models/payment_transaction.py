@@ -328,9 +328,11 @@ class PaymentTransaction(models.Model):
                 self.env._("Received data with invalid status: %s.", payment_status)
             )
 
-        # Immediately post-process the transaction if it is a refund, as the post-processing will
-        # not be triggered by a customer browsing the transaction from the portal.
-        if self.operation == 'refund':
+        # Immediately post-process the transaction if it is a follow-up (refund, capture, void), as
+        # the post-processing will not be triggered by a customer browsing the transaction from the
+        # portal. For captures, this creates the payment right away, which is the record from which
+        # a captured amount is refunded: the authorization itself never gets a payment.
+        if self.source_transaction_id:
             self.env.ref('payment.cron_post_process_payment_tx')._trigger()
 
     def _paytabs_is_capture_or_void_child(self):

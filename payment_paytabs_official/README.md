@@ -14,7 +14,46 @@ Official Odoo payment provider module for PayTabs
 
 ---
 
+## Hosting
+
+The module contains Python code (models, controllers, hooks). It therefore requires a hosting
+where third-party modules are loaded from the `addons_path`:
+
+| Hosting | Odoo version | Supported |
+| --- | --- | --- |
+| Odoo Online (SaaS) | any | **No** — Odoo Online does not run third-party Python modules on any version |
+| Odoo.sh | 19.0 | Yes — use the `19.0` branch |
+| On-premise | 19.0 | Yes — use the `19.0` branch |
+| On-premise | saas~19.4 | Development only, from source — this branch |
+
+Odoo's intermediary `saas~19.x` releases are officially supported on Odoo Online only; Odoo.sh and
+the packaged on-premise releases ship `19.0`. This `saas~19.4` build targets instances running the
+`saas-19.4` source branch of Odoo (e.g. development environments or preparing for the next major
+release). There is no packaged or supported on-premise release of `saas~19.4`, and no official
+upgrade path from it; for production, use the `19.0` build on Odoo.sh or on-premise.
+
+### Odoo Online
+
+Odoo Online only runs modules shipped in Odoo's own codebase. The `Apps >> Import Module` option
+accepts data-only modules (XML/CSV) and skips Python code, so uploading this module's zip fails
+with a `ParseError` on `views/payment_provider_views.xml` (the `paytabs_*` fields do not exist
+without the Python models). This is a platform restriction, not a version limitation.
+
+---
+
 ## Installation
+
+### Odoo.sh
+
+1. From the [Odoo Apps Store](https://apps.odoo.com/apps/modules/19.0/payment_paytabs_official)
+   listing, click `Deploy on Odoo.sh` and choose your project and branch, or add this repository
+   as a submodule (`Odoo.sh >> Settings >> Submodules`, branch `19.0`), or copy the
+   `payment_paytabs_official` folder into your project repository and push
+2. Wait for the branch to rebuild
+3. Go to `Odoo >> Apps`, click `Update Apps List` (developer mode must be active)
+4. Search for `PayTabs` and click `Activate`
+
+### On-premise
 
 1. Download the latest release of the module
 2. Copy the folder `payment_paytabs_official` into one of the directories listed in the `addons_path` of
@@ -95,10 +134,18 @@ transactions made from the dashboard (captures, voids, refunds) are ignored in t
 
 ## Use Refunds
 
-1. Open the payment transaction (`Invoicing >> Configuration >> Payment Transactions`, or from the
-   invoice's **Payments** smart button)
+1. Open the payment created for the transaction (`Invoicing >> Customers >> Payments`, or from the
+   invoice's **Payments** smart button); the payment is also reachable from the transaction's
+   **Payment** field (`Invoicing >> Configuration >> Payment Transactions`)
 2. Click `Refund`, enter the amount (full or partial) and confirm
-3. The refund is sent to PayTabs; its status is updated from the callback
+3. The refund is sent to PayTabs and its result is applied from the response; a refund transaction
+   (`R-` prefix) and an outbound payment are created
+
+*Note: for a manually captured authorization, refund from the payment of the **capture**
+transaction (`P-` prefix), not from the authorization. Odoo never creates a payment for the
+authorization itself — the captured amounts are recorded on the capture transactions — and
+PayTabs only refunds settled (captured) transactions. See
+[Use Manual Capture](#use-manual-capture).*
 
 ---
 
@@ -116,6 +163,12 @@ charging it, and the transaction is set to **Authorized** once the callback is p
 Captures and voids are sent to PayTabs immediately and their result is applied from the response.
 The authorization holds the amount for a limited time, set by the card issuer; capture it before
 it expires.
+
+Each successful capture creates its own payment (and reconciles it with the transaction's
+invoices, if any); the authorization transaction itself never gets a payment, even once it is
+fully captured — this is how Odoo records partial captures. To refund a captured amount, open the
+capture transaction (`P-` prefix, listed under **Child transactions** on the authorization), follow
+its **Payment** field and click `Refund` on the payment.
 
 *Note: PayTabs may put a follow-up on hold (status `H`) according to the profile's fraud rules.
 The transaction is then set in error in Odoo with the reason in the chatter; release or capture the
