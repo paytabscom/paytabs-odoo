@@ -32,7 +32,7 @@ class TestPaymentTransaction(PayTabsCommon):
         self.assertTrue(payload['callback'].endswith('/payment/paytabs/webhook'))
         self.assertEqual(payload['plugin_info']['cart_name'], 'odoo')
         self.assertTrue(payload['plugin_info']['cart_version'].startswith('19.0'))
-        self.assertEqual(payload['plugin_info']['plugin_version'], '19.0.1.0.0')
+        self.assertEqual(payload['plugin_info']['plugin_version'], '19.0.1.1.0')
 
     def test_paypage_payload_requests_an_authorization_when_capturing_manually(self):
         """ Test that the payment page authorizes instead of selling when capture is manual. """

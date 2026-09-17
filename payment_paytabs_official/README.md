@@ -196,6 +196,9 @@ with the `signature` header) and rejected if the signature does not match.
 
 ## Module History
 
+- `19.0.1.1.0`
+  - The Region setting is renamed to Endpoint (`paytabs_endpoint`), Google Pay is added, and
+    the supported payment methods are linked to the provider.
 - `19.0.1.0.0`
   - The first version of the module is released: hosted payment page, callback processing,
     refunds, manual capture and void.

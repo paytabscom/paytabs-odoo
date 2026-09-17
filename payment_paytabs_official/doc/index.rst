@@ -194,6 +194,12 @@ Support
 Changelog
 =========
 
+19.0.1.1.0
+----------
+
+- The Region setting is renamed to Endpoint, Google Pay is added, and the supported payment
+  methods are linked to the provider.
+
 19.0.1.0.0
 ----------
 
