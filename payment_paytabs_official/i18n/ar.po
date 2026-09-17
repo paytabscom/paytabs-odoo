@@ -46,7 +46,7 @@ msgid "Code"
 msgstr "رمز"
 
 #. module: payment_paytabs_official
-#: model:ir.model.fields.selection,name:payment_paytabs_official.selection__payment_provider__paytabs_region__cuzdan
+#: model:ir.model.fields.selection,name:payment_paytabs_official.selection__payment_provider__paytabs_endpoint__cuzdan
 msgid "Cuzdan"
 msgstr "Cuzdan"
 
@@ -55,6 +55,11 @@ msgstr "Cuzdan"
 #: model:ir.model.fields,field_description:payment_paytabs_official.field_payment_transaction__display_name
 msgid "Display Name"
 msgstr "اسم العرض"
+
+#. module: payment_paytabs_official
+#: model_terms:ir.ui.view,arch_db:payment_paytabs_official.payment_provider_form
+msgid "Endpoint"
+msgstr "نقطة الاتصال"
 
 #. module: payment_paytabs_official
 #: model:ir.model.fields,field_description:payment_paytabs_official.field_payment_provider__paytabs_hide_shipping
@@ -162,11 +167,6 @@ msgid "Refund of %s"
 msgstr "استرداد %s"
 
 #. module: payment_paytabs_official
-#: model_terms:ir.ui.view,arch_db:payment_paytabs_official.payment_provider_form
-msgid "Region"
-msgstr "المنطقة"
-
-#. module: payment_paytabs_official
 #: model:ir.model.fields,help:payment_paytabs_official.field_payment_provider__paytabs_tunnel_callback
 msgid ""
 "Send the webhook (callback) notifications through the tunnel URL. PayTabs "
@@ -218,14 +218,14 @@ msgstr ""
 "العنوان الأساسي للنظام."
 
 #. module: payment_paytabs_official
-#: model:ir.model.fields,help:payment_paytabs_official.field_payment_provider__paytabs_region
+#: model:ir.model.fields,help:payment_paytabs_official.field_payment_provider__paytabs_endpoint
 msgid ""
-"The region of the PayTabs account, which determines the API endpoint to use."
-" It must match the region the profile was issued for, or PayTabs rejects the"
-" server key."
+"The PayTabs platform the profile was issued on, which determines the API "
+"host to use. It must match the platform of the profile, or PayTabs rejects "
+"the server key."
 msgstr ""
-"منطقة حساب PayTabs، وهي التي تحدد نقطة نهاية الواجهة البرمجية المستخدمة. يجب "
-"أن تطابق المنطقة التي صدر الملف لها، وإلا يرفض PayTabs مفتاح الخادم."
+"منصة PayTabs التي صدر عليها الملف، وهي التي تحدد مضيف الواجهة البرمجية المستخدم."
+"يجب أن تطابق منصة الملف عند PayTabs، وإلا يرفض PayTabs مفتاح الخادم."
 
 #. module: payment_paytabs_official
 #: model:ir.model.fields,help:payment_paytabs_official.field_payment_provider__paytabs_server_key

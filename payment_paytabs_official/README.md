@@ -36,9 +36,9 @@ odoo -c /etc/odoo/odoo.conf -d <database> -i payment_paytabs_official --stop-aft
 1. Go to `Odoo >> Invoicing (or Website / Sales) >> Configuration >> Payment Providers`
 2. Open `PayTabs`
 3. Fill in the **Credentials** tab:
-   - **Region**: the region your PayTabs account was issued for. It selects the API endpoint
+   - **Endpoint**: the PayTabs platform your profile was issued on. It selects the API host
      (`secure.paytabs.com`, `secure.paytabs.sa`, `secure-egypt.paytabs.com`, ...); a profile only
-     authenticates against its own region
+     authenticates against its own endpoint
    - **Profile ID**: `Merchant’s Dashboard >> Developers >> Key management >> Profile ID`
    - **Server Key**: `Merchant’s Dashboard >> Developers >> Key management >> Server Key`
 4. Set the **State**:

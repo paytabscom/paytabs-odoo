@@ -35,9 +35,9 @@ Configuration
 #. Open *PayTabs*.
 #. Fill in the **Credentials** tab:
 
-   - **Region**: the region your PayTabs account was issued for. It selects the API endpoint
+   - **Endpoint**: the PayTabs platform your profile was issued on. It selects the API host
      (``secure.paytabs.com``, ``secure.paytabs.sa``, ``secure-egypt.paytabs.com``, ...); a profile
-     only authenticates against its own region.
+     only authenticates against its own endpoint.
    - **Profile ID**: *Merchant's Dashboard » Developers » Key management » Profile ID*.
    - **Server Key**: *Merchant's Dashboard » Developers » Key management » Server Key*.
 
