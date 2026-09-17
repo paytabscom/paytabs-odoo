@@ -41,6 +41,38 @@ class TestPaymentProvider(PayTabsCommon):
         """ Test that cards are enabled by default when PayTabs is enabled. """
         self.assertIn('card', self.provider._get_default_payment_method_codes())
 
+    def test_provider_supports_tokenization(self):
+        """ Test that PayTabs providers support saving payment methods. """
+        self.assertTrue(self.provider.support_tokenization)
+
+    def test_tokenizable_payment_methods(self):
+        """ Test that cards, mada and Google Pay can be saved. """
+        for xmlid in (
+            'payment.payment_method_card',
+            'payment.payment_method_mada',
+            'payment_paytabs_official.payment_method_google_pay',
+        ):
+            self.assertTrue(self.env.ref(xmlid).support_tokenization, xmlid)
+
+    def test_provider_is_compatible_with_tokenized_payments(self):
+        """ Test that the provider is offered when the payment method must be saved. """
+        self.provider.allow_tokenization = True
+        compatible_providers = self.provider._get_compatible_providers(
+            self.company.id, self.partner.id, self.amount, force_tokenization=True
+        )
+        self.assertIn(self.provider, compatible_providers)
+
+    def test_provider_is_not_compatible_with_validation_operations(self):
+        """ Test that the provider is not offered to save a payment method without paying. """
+        self.provider.allow_tokenization = True
+        report = {}
+        compatible_providers = self.provider._get_compatible_providers(
+            self.company.id, self.partner.id, self.amount, is_validation=True, report=report
+        )
+        self.assertNotIn(self.provider, compatible_providers)
+        self.assertIn(self.provider, report['providers'])
+        self.assertFalse(report['providers'][self.provider]['available'])
+
     def test_request_url_is_built_from_the_endpoint(self):
         """ Test that the API URL matches the endpoint of the PayTabs account. """
         self.assertEqual(

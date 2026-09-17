@@ -4,8 +4,10 @@ import hashlib
 import hmac
 from urllib.parse import quote_plus
 
-from odoo import fields, models, release
+from odoo import api, fields, models, release
 
+from odoo.addons.payment import utils as payment_utils
+from odoo.addons.payment.const import REPORT_REASONS_MAPPING
 from odoo.addons.payment_paytabs_official import const
 
 
@@ -83,9 +85,34 @@ class PaymentProvider(models.Model):
         self.filtered(lambda p: p.code == 'paytabs').update({
             'support_manual_capture': 'partial',
             'support_refund': 'partial',
+            'support_tokenization': True,
         })
 
     # === BUSINESS METHODS === #
+
+    @api.model
+    def _get_compatible_providers(self, *args, is_validation=False, report=None, **kwargs):
+        """ Override of `payment` to filter out PayTabs providers for validation operations.
+
+        PayTabs only tokenizes a payment method as part of an actual payment (`tokenise` on the
+        payment page) and rejects zero-amount requests, so payment methods cannot be saved
+        without a payment.
+        """
+        providers = super()._get_compatible_providers(
+            *args, is_validation=is_validation, report=report, **kwargs
+        )
+
+        if is_validation:
+            unfiltered_providers = providers
+            providers = providers.filtered(lambda p: p.code != 'paytabs')
+            payment_utils.add_to_report(
+                report,
+                unfiltered_providers - providers,
+                available=False,
+                reason=REPORT_REASONS_MAPPING['validation_not_supported'],
+            )
+
+        return providers
 
     def _get_default_payment_method_codes(self):
         """ Override of `payment` to return the default payment method codes. """
