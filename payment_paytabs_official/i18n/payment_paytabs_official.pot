@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0-20260619\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-17 06:32+0000\n"
-"PO-Revision-Date: 2026-09-17 06:32+0000\n"
+"POT-Creation-Date: 2026-09-17 13:24+0000\n"
+"PO-Revision-Date: 2026-09-17 13:24+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -50,6 +50,7 @@ msgstr ""
 
 #. module: payment_paytabs_official
 #: model:ir.model.fields,field_description:payment_paytabs_official.field_payment_provider__display_name
+#: model:ir.model.fields,field_description:payment_paytabs_official.field_payment_token__display_name
 #: model:ir.model.fields,field_description:payment_paytabs_official.field_payment_transaction__display_name
 msgid "Display Name"
 msgstr ""
@@ -81,6 +82,7 @@ msgstr ""
 
 #. module: payment_paytabs_official
 #: model:ir.model.fields,field_description:payment_paytabs_official.field_payment_provider__id
+#: model:ir.model.fields,field_description:payment_paytabs_official.field_payment_token__id
 #: model:ir.model.fields,field_description:payment_paytabs_official.field_payment_transaction__id
 msgid "ID"
 msgstr ""
@@ -144,6 +146,11 @@ msgid "PayTabs Server Key"
 msgstr ""
 
 #. module: payment_paytabs_official
+#: model:ir.model.fields,field_description:payment_paytabs_official.field_payment_token__paytabs_tran_ref
+msgid "PayTabs Transaction Reference"
+msgstr ""
+
+#. module: payment_paytabs_official
 #. odoo-python
 #: code:addons/payment_paytabs_official/models/payment_transaction.py:0
 msgid ""
@@ -168,6 +175,11 @@ msgstr ""
 #. module: payment_paytabs_official
 #: model:ir.model,name:payment_paytabs_official.model_payment_provider
 msgid "Payment Provider"
+msgstr ""
+
+#. module: payment_paytabs_official
+#: model:ir.model,name:payment_paytabs_official.model_payment_token
+msgid "Payment Token"
 msgstr ""
 
 #. module: payment_paytabs_official
@@ -268,6 +280,13 @@ msgid ""
 msgstr ""
 
 #. module: payment_paytabs_official
+#: model:ir.model.fields,help:payment_paytabs_official.field_payment_token__paytabs_tran_ref
+msgid ""
+"The reference of the transaction that created the token; PayTabs requires it"
+" to charge the token."
+msgstr ""
+
+#. module: payment_paytabs_official
 #: model:ir.model.fields,help:payment_paytabs_official.field_payment_provider__paytabs_server_key
 msgid ""
 "The server key of the PayTabs account, found under Developers > Key "
@@ -285,6 +304,12 @@ msgid ""
 "The title shown at checkout for the Card payment method of this provider, "
 "e.g. \"PayTabs Payments\". Leave empty to keep the standard \"Card\" title. "
 "Other payment methods keep their own name."
+msgstr ""
+
+#. module: payment_paytabs_official
+#. odoo-python
+#: code:addons/payment_paytabs_official/models/payment_transaction.py:0
+msgid "The transaction is not linked to a token."
 msgstr ""
 
 #. module: payment_paytabs_official

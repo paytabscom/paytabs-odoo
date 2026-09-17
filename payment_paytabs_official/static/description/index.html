@@ -41,20 +41,26 @@
 
 <section class="oe_container">
     <div class="container py-5">
-        <h2 class="text-center mb-4">Refunds, manual capture and void</h2>
+        <h2 class="text-center mb-4">Refunds, manual capture, void and saved payment methods</h2>
         <div class="row g-4">
             <div class="col-12 col-lg-6">
-                <p class="mb-0">
+                <p>
                     Refund a payment, in full or in part, straight from the Odoo transaction. Enable
                     <b>Capture Amount Manually</b> to authorize the amount at checkout and capture or
                     void it later, including partial captures and partial releases.
                 </p>
-            </div>
-            <div class="col-12 col-lg-6">
                 <p class="mb-0">
                     Declined, failed, expired and held transactions carry the reason reported by
                     PayTabs in the chatter of the linked invoice, sales order or payment, while the
                     customer only sees a generic message.
+                </p>
+            </div>
+            <div class="col-12 col-lg-6">
+                <p class="mb-0">
+                    Enable <b>Allow Saving Payment Methods</b> to let customers save their card,
+                    Mada or Google Pay method at checkout and pay again without being redirected.
+                    Subscriptions and other automatic payments are charged with the saved method,
+                    and methods deleted in Odoo are deleted on PayTabs too.
                 </p>
             </div>
         </div>
@@ -103,11 +109,11 @@
             <div class="col-12 col-lg-10">
                 <p class="text-center">
                     Uses the standard <code>payment</code> module flows of Odoo 19 (redirect payment,
-                    refunds, manual capture), ships an Arabic translation and a full automated test
-                    suite, and masks the server key and signatures in the server logs.
+                    refunds, manual capture, tokenization), ships an Arabic translation and a full
+                    automated test suite, and masks the server key and signatures in the server logs.
                 </p>
                 <p class="text-center mb-0">
-                    Tokenization (saved cards) and express checkout are not part of this version.
+                    Express checkout is not part of this version.
                 </p>
             </div>
         </div>
