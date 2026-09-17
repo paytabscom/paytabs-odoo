@@ -41,28 +41,30 @@ class TestPaymentProvider(PayTabsCommon):
         """ Test that cards are enabled by default when PayTabs is enabled. """
         self.assertIn('card', self.provider._get_default_payment_method_codes())
 
-    def test_request_url_is_built_from_the_region(self):
-        """ Test that the API URL matches the region of the PayTabs account. """
+    def test_request_url_is_built_from_the_endpoint(self):
+        """ Test that the API URL matches the endpoint of the PayTabs account. """
         self.assertEqual(
             self.provider._build_request_url('payment/request'),
             'https://secure.paytabs.com/payment/request',
         )
 
-        self.provider.paytabs_region = 'SAU'
+        self.provider.paytabs_endpoint = 'SAU'
         self.assertEqual(
             self.provider._build_request_url('payment/request'),
             'https://secure.paytabs.sa/payment/request',
         )
 
-    def test_every_region_has_an_api_url(self):
-        """ Test that each selectable region maps to an API URL, and vice versa. """
-        region_codes = {code for code, _label in self.provider._fields['paytabs_region'].selection}
-        self.assertEqual(region_codes, set(const.API_URLS))
-        for region in region_codes:
-            self.provider.paytabs_region = region
+    def test_every_endpoint_has_an_api_url(self):
+        """ Test that each selectable endpoint maps to an API URL, and vice versa. """
+        endpoint_codes = {
+            code for code, _label in self.provider._fields['paytabs_endpoint'].selection
+        }
+        self.assertEqual(endpoint_codes, set(const.API_URLS))
+        for endpoint in endpoint_codes:
+            self.provider.paytabs_endpoint = endpoint
             self.assertEqual(
                 self.provider._build_request_url('payment/request'),
-                f'{const.API_URLS[region]}/payment/request',
+                f'{const.API_URLS[endpoint]}/payment/request',
             )
 
     def test_endpoint_does_not_depend_on_the_provider_state(self):
@@ -84,11 +86,11 @@ class TestPaymentProvider(PayTabsCommon):
         headers = self.provider._build_request_headers('POST', 'payment/request', {})
         self.assertEqual(headers['Authorization'], self.provider.paytabs_server_key)
 
-    def test_request_url_raises_a_clear_error_for_an_unknown_region(self):
-        """ Test that unknown regions fail with a configuration error instead of a KeyError. """
+    def test_request_url_raises_a_clear_error_for_an_unknown_endpoint(self):
+        """ Test that unknown endpoints fail with a configuration error instead of a KeyError. """
         # The ORM rejects values outside the selection, so drop the mapping instead.
         with patch.dict(const.API_URLS, clear=True), \
-             self.assertRaisesRegex(ValueError, 'Unknown PayTabs region'):
+             self.assertRaisesRegex(ValueError, 'Unknown PayTabs endpoint'):
             self.provider._build_request_url('payment/request')
 
     def test_redirect_signature_ignores_empty_and_signature_fields(self):

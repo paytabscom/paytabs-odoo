@@ -12,7 +12,7 @@ class PayTabsCommon(PaymentCommon):
         super().setUpClass()
 
         cls.provider = cls._prepare_provider('paytabs', update_values={
-            'paytabs_region': 'ARE',
+            'paytabs_endpoint': 'ARE',
             'paytabs_profile_id': 12345,
             'paytabs_server_key': 'SJKLMNOPQR-XYZABCDEFG-HIJKLMNOPQ',
             'payment_method_ids': [Command.set([cls.env.ref('payment.payment_method_card').id])],

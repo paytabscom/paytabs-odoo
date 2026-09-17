@@ -32,7 +32,7 @@ class TestPaymentTransaction(PayTabsCommon):
         self.assertTrue(payload['callback'].endswith('/payment/paytabs/webhook'))
         self.assertEqual(payload['plugin_info']['cart_name'], 'odoo')
         self.assertTrue(payload['plugin_info']['cart_version'].startswith('19.0'))
-        self.assertEqual(payload['plugin_info']['plugin_version'], '19.0.1.0.0')
+        self.assertEqual(payload['plugin_info']['plugin_version'], '19.0.1.1.0')
 
     def test_paypage_payload_requests_an_authorization_when_capturing_manually(self):
         """ Test that the payment page authorizes instead of selling when capture is manual. """
@@ -77,6 +77,14 @@ class TestPaymentTransaction(PayTabsCommon):
             'redirect', payment_method_id=self.env.ref('payment.payment_method_stcpay').id
         )
         self.assertEqual(tx._paytabs_prepare_paypage_payload()['payment_methods'], ['stcpay'])
+
+    def test_paypage_payload_restricts_the_page_to_google_pay(self):
+        """ Test that the module-shipped Google Pay method maps to the PayTabs code. """
+        tx = self._create_transaction(
+            'redirect',
+            payment_method_id=self.env.ref('payment_paytabs_official.payment_method_google_pay').id,
+        )
+        self.assertEqual(tx._paytabs_prepare_paypage_payload()['payment_methods'], ['google'])
 
     def test_paypage_payload_follows_the_hide_shipping_setting(self):
         """ Test that the `hide_shipping` flag mirrors the provider setting. """

@@ -2,10 +2,11 @@
 
 from odoo.addons.payment.const import SENSITIVE_KEYS as PAYMENT_SENSITIVE_KEYS
 
-# The supported PayTabs regions, mapped to their display label and API base URL.
+# The supported PayTabs endpoints, mapped to their display label and API base URL. Several
+# endpoints can serve the same country, so the selection is a platform, not a location.
 # Test and live profiles share the same endpoint; only the profile ID differs. A profile only
 # authenticates against the host it was issued for.
-REGIONS = {
+ENDPOINTS = {
     'ARE': ("United Arab Emirates", 'https://secure.paytabs.com'),
     'SAU': ("Saudi Arabia", 'https://secure.paytabs.sa'),
     'EGY': ("Egypt", 'https://secure-egypt.paytabs.com'),
@@ -20,11 +21,11 @@ REGIONS = {
     'CUZDAN': ("Cuzdan", 'https://secure.cuzdan.az'),
 }
 
-# The selection values of the `paytabs_region` field.
-REGION_SELECTION = [(code, label) for code, (label, _url) in REGIONS.items()]
+# The selection values of the `paytabs_endpoint` field.
+ENDPOINT_SELECTION = [(code, label) for code, (label, _url) in ENDPOINTS.items()]
 
-# The base URL of the PayTabs API for each supported region.
-API_URLS = {code: url for code, (_label, url) in REGIONS.items()}
+# The base URL of the PayTabs API for each supported endpoint.
+API_URLS = {code: url for code, (_label, url) in ENDPOINTS.items()}
 
 # The transaction types of follow-up operations performed against a prior transaction.
 FOLLOW_UP_TRAN_TYPES = ('refund', 'void', 'release', 'capture')
@@ -43,8 +44,15 @@ DEFAULT_PAYMENT_METHOD_CODES = {
     'visa',
     'mastercard',
     'amex',
-    'meeza',
+    'maestro',
+    'jcb',
+    'diners',
+    'discover',
     'unionpay',
+    'rupay',
+    'dankort',
+    'meeza',
+    'omannet',
 }
 
 # Mapping of payment method codes to PayTabs codes, for the `payment_methods` request parameter.
@@ -53,6 +61,7 @@ DEFAULT_PAYMENT_METHOD_CODES = {
 PAYMENT_METHODS_MAPPING = {
     'aman': 'aman',
     'forsa': 'forsa',
+    'google_pay': 'google',
     'halan': 'halan',
     'installments_eg': 'installment',
     'knet': 'knet',

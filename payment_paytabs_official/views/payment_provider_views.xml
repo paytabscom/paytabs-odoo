@@ -9,8 +9,8 @@
             <group name="provider_credentials" position="inside">
                 <group invisible="code != 'paytabs'">
                     <field
-                        name="paytabs_region"
-                        string="Region"
+                        name="paytabs_endpoint"
+                        string="Endpoint"
                         required="code == 'paytabs' and state != 'disabled'"
                     />
                     <field

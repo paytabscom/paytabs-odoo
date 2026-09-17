@@ -7,12 +7,14 @@
         <field name="module_id" ref="base.module_payment_paytabs_official"/>
         <field name="image_128" type="base64" file="payment_paytabs_official/static/description/icon.png"/>
         <field name="redirect_form_view_id" ref="redirect_form"/>
-        <!-- The payment methods available depend on the region and on the PayTabs profile; card is
+        <!-- The payment methods available depend on the endpoint and on the PayTabs profile; card is
              common to all. See https://site.paytabs.com/en/payment-methods/ -->
         <field name="payment_method_ids"
                eval="[Command.set([
                          ref('payment.payment_method_aman'),
+                         ref('payment.payment_method_benefit'),
                          ref('payment.payment_method_card'),
+                         ref('payment.payment_method_contact'),
                          ref('payment.payment_method_forsa'),
                          ref('payment.payment_method_halan'),
                          ref('payment.payment_method_installments_eg'),

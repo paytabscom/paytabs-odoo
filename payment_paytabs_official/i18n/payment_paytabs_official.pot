@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 19.0-20260619\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-14 05:44+0000\n"
-"PO-Revision-Date: 2026-09-14 05:44+0000\n"
+"POT-Creation-Date: 2026-09-17 06:32+0000\n"
+"PO-Revision-Date: 2026-09-17 06:32+0000\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -44,7 +44,7 @@ msgid "Code"
 msgstr ""
 
 #. module: payment_paytabs_official
-#: model:ir.model.fields.selection,name:payment_paytabs_official.selection__payment_provider__paytabs_region__cuzdan
+#: model:ir.model.fields.selection,name:payment_paytabs_official.selection__payment_provider__paytabs_endpoint__cuzdan
 msgid "Cuzdan"
 msgstr ""
 
@@ -55,13 +55,23 @@ msgid "Display Name"
 msgstr ""
 
 #. module: payment_paytabs_official
-#: model:ir.model.fields.selection,name:payment_paytabs_official.selection__payment_provider__paytabs_region__egy
+#: model:ir.model.fields.selection,name:payment_paytabs_official.selection__payment_provider__paytabs_endpoint__egy
 msgid "Egypt"
 msgstr ""
 
 #. module: payment_paytabs_official
-#: model:ir.model.fields.selection,name:payment_paytabs_official.selection__payment_provider__paytabs_region__global
+#: model_terms:ir.ui.view,arch_db:payment_paytabs_official.payment_provider_form
+msgid "Endpoint"
+msgstr ""
+
+#. module: payment_paytabs_official
+#: model:ir.model.fields.selection,name:payment_paytabs_official.selection__payment_provider__paytabs_endpoint__global
 msgid "Global"
+msgstr ""
+
+#. module: payment_paytabs_official
+#: model:payment.method,name:payment_paytabs_official.payment_method_google_pay
+msgid "Google Pay"
 msgstr ""
 
 #. module: payment_paytabs_official
@@ -76,27 +86,27 @@ msgid "ID"
 msgstr ""
 
 #. module: payment_paytabs_official
-#: model:ir.model.fields.selection,name:payment_paytabs_official.selection__payment_provider__paytabs_region__irq
+#: model:ir.model.fields.selection,name:payment_paytabs_official.selection__payment_provider__paytabs_endpoint__irq
 msgid "Iraq"
 msgstr ""
 
 #. module: payment_paytabs_official
-#: model:ir.model.fields.selection,name:payment_paytabs_official.selection__payment_provider__paytabs_region__jor
+#: model:ir.model.fields.selection,name:payment_paytabs_official.selection__payment_provider__paytabs_endpoint__jor
 msgid "Jordan"
 msgstr ""
 
 #. module: payment_paytabs_official
-#: model:ir.model.fields.selection,name:payment_paytabs_official.selection__payment_provider__paytabs_region__kwt
+#: model:ir.model.fields.selection,name:payment_paytabs_official.selection__payment_provider__paytabs_endpoint__kwt
 msgid "Kuwait"
 msgstr ""
 
 #. module: payment_paytabs_official
-#: model:ir.model.fields.selection,name:payment_paytabs_official.selection__payment_provider__paytabs_region__madfoat
+#: model:ir.model.fields.selection,name:payment_paytabs_official.selection__payment_provider__paytabs_endpoint__madfoat
 msgid "Madfoat"
 msgstr ""
 
 #. module: payment_paytabs_official
-#: model:ir.model.fields.selection,name:payment_paytabs_official.selection__payment_provider__paytabs_region__mar
+#: model:ir.model.fields.selection,name:payment_paytabs_official.selection__payment_provider__paytabs_endpoint__mar
 msgid "Morocco"
 msgstr ""
 
@@ -107,7 +117,7 @@ msgid "No reason provided"
 msgstr ""
 
 #. module: payment_paytabs_official
-#: model:ir.model.fields.selection,name:payment_paytabs_official.selection__payment_provider__paytabs_region__omn
+#: model:ir.model.fields.selection,name:payment_paytabs_official.selection__payment_provider__paytabs_endpoint__omn
 msgid "Oman"
 msgstr ""
 
@@ -119,13 +129,13 @@ msgid "PayTabs"
 msgstr ""
 
 #. module: payment_paytabs_official
-#: model:ir.model.fields,field_description:payment_paytabs_official.field_payment_provider__paytabs_profile_id
-msgid "PayTabs Profile ID"
+#: model:ir.model.fields,field_description:payment_paytabs_official.field_payment_provider__paytabs_endpoint
+msgid "PayTabs Endpoint"
 msgstr ""
 
 #. module: payment_paytabs_official
-#: model:ir.model.fields,field_description:payment_paytabs_official.field_payment_provider__paytabs_region
-msgid "PayTabs Region"
+#: model:ir.model.fields,field_description:payment_paytabs_official.field_payment_provider__paytabs_profile_id
+msgid "PayTabs Profile ID"
 msgstr ""
 
 #. module: payment_paytabs_official
@@ -171,7 +181,7 @@ msgid "Profile ID"
 msgstr ""
 
 #. module: payment_paytabs_official
-#: model:ir.model.fields.selection,name:payment_paytabs_official.selection__payment_provider__paytabs_region__qat
+#: model:ir.model.fields.selection,name:payment_paytabs_official.selection__payment_provider__paytabs_endpoint__qat
 msgid "Qatar"
 msgstr ""
 
@@ -203,12 +213,7 @@ msgid "Refund of %s"
 msgstr ""
 
 #. module: payment_paytabs_official
-#: model_terms:ir.ui.view,arch_db:payment_paytabs_official.payment_provider_form
-msgid "Region"
-msgstr ""
-
-#. module: payment_paytabs_official
-#: model:ir.model.fields.selection,name:payment_paytabs_official.selection__payment_provider__paytabs_region__sau
+#: model:ir.model.fields.selection,name:payment_paytabs_official.selection__payment_provider__paytabs_endpoint__sau
 msgid "Saudi Arabia"
 msgstr ""
 
@@ -232,6 +237,14 @@ msgid ""
 msgstr ""
 
 #. module: payment_paytabs_official
+#: model:ir.model.fields,help:payment_paytabs_official.field_payment_provider__paytabs_endpoint
+msgid ""
+"The PayTabs platform the profile was issued on, which determines the API "
+"host to use. It must match the platform of the profile, or PayTabs rejects "
+"the server key."
+msgstr ""
+
+#. module: payment_paytabs_official
 #. odoo-python
 #: code:addons/payment_paytabs_official/models/payment_transaction.py:0
 msgid "The capture of the transaction %s failed."
@@ -252,14 +265,6 @@ msgid ""
 "Tunnel) or a reverse proxy with a different hostname. Only the return and "
 "callback URLs sent to PayTabs are affected, and only while the provider is "
 "in test mode. Leave empty to use the system base URL."
-msgstr ""
-
-#. module: payment_paytabs_official
-#: model:ir.model.fields,help:payment_paytabs_official.field_payment_provider__paytabs_region
-msgid ""
-"The region of the PayTabs account, which determines the API endpoint to use."
-" It must match the region the profile was issued for, or PayTabs rejects the"
-" server key."
 msgstr ""
 
 #. module: payment_paytabs_official
@@ -319,7 +324,7 @@ msgid "URL"
 msgstr ""
 
 #. module: payment_paytabs_official
-#: model:ir.model.fields.selection,name:payment_paytabs_official.selection__payment_provider__paytabs_region__are
+#: model:ir.model.fields.selection,name:payment_paytabs_official.selection__payment_provider__paytabs_endpoint__are
 msgid "United Arab Emirates"
 msgstr ""
 

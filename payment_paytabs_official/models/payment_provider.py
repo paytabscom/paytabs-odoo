@@ -15,11 +15,11 @@ class PaymentProvider(models.Model):
     code = fields.Selection(
         selection_add=[('paytabs', "PayTabs")], ondelete={'paytabs': 'set default'}
     )
-    paytabs_region = fields.Selection(
-        string="PayTabs Region",
-        help="The region of the PayTabs account, which determines the API endpoint to use. It must"
-             " match the region the profile was issued for, or PayTabs rejects the server key.",
-        selection=const.REGION_SELECTION,
+    paytabs_endpoint = fields.Selection(
+        string="PayTabs Endpoint",
+        help="The PayTabs platform the profile was issued on, which determines the API host to"
+             " use. It must match the platform of the profile, or PayTabs rejects the server key.",
+        selection=const.ENDPOINT_SELECTION,
         default='ARE',
         required_if_provider='paytabs',
         copy=False,
@@ -161,9 +161,9 @@ class PaymentProvider(models.Model):
         """ Override of `payment` to build the request URL. """
         if self.code != 'paytabs':
             return super()._build_request_url(endpoint, **kwargs)
-        base_url = const.API_URLS.get(self.paytabs_region)
+        base_url = const.API_URLS.get(self.paytabs_endpoint)
         if not base_url:
-            raise ValueError(f"Unknown PayTabs region: {self.paytabs_region!r}")
+            raise ValueError(f"Unknown PayTabs endpoint: {self.paytabs_endpoint!r}")
         return f'{base_url.rstrip("/")}/{endpoint.lstrip("/")}'
 
     def _build_request_headers(self, *args, **kwargs):

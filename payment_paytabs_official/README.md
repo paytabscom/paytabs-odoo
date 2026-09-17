@@ -36,9 +36,9 @@ odoo -c /etc/odoo/odoo.conf -d <database> -i payment_paytabs_official --stop-aft
 1. Go to `Odoo >> Invoicing (or Website / Sales) >> Configuration >> Payment Providers`
 2. Open `PayTabs`
 3. Fill in the **Credentials** tab:
-   - **Region**: the region your PayTabs account was issued for. It selects the API endpoint
+   - **Endpoint**: the PayTabs platform your profile was issued on. It selects the API host
      (`secure.paytabs.com`, `secure.paytabs.sa`, `secure-egypt.paytabs.com`, ...); a profile only
-     authenticates against its own region
+     authenticates against its own endpoint
    - **Profile ID**: `Merchant’s Dashboard >> Developers >> Key management >> Profile ID`
    - **Server Key**: `Merchant’s Dashboard >> Developers >> Key management >> Server Key`
 4. Set the **State**:
@@ -53,19 +53,20 @@ odoo -c /etc/odoo/odoo.conf -d <database> -i payment_paytabs_official --stop-aft
      `PayTabs Payments`. Leave empty to keep the standard `Card` title; other providers and
      payment methods are not affected
    - **Payment Methods**: the methods listed here are shown with their icons at checkout. Only
-     **Card** (Visa, Mastercard, American Express, Meeza, UnionPay brands; OmanNet can be added
-     from the card brands) is enabled by default; enable the others your PayTabs profile supports
-     from the list (Mada, STC Pay, Samsung Pay, KNET, Tabby, Tamara, ValU, Aman, Forsa, Halan,
-     Souhoola, Bank Installments, PayPal).
+     **Card** (Visa, Mastercard, American Express, Maestro, JCB, Diners, Discover, UnionPay,
+     RuPay, Dankort, Meeza and OmanNet brands) is enabled by default; enable the others your
+     PayTabs profile supports from the list (Mada, STC Pay, Samsung Pay, Google Pay, KNET, Benefit,
+     Tabby, Tamara, ValU, Aman, Forsa, Halan, Souhoola, Bank Installments, Contact, PayPal).
 
    *Note: when the customer selects an alternative payment method (Mada, STC Pay, ...) in Odoo,
    the PayTabs payment page is restricted to that method (`payment_methods` parameter). When
-   **Card** is selected, the page offers every card scheme enabled on your profile. Enable a
-   method in Odoo only if it is also enabled on your PayTabs profile, otherwise PayTabs rejects
-   the payment request.*
+   **Card**, **Benefit** or **Contact** is selected, the page offers every method enabled on your
+   profile. Enable a method in Odoo only if it is also enabled on your PayTabs profile, otherwise
+   PayTabs rejects the payment request.*
    - **Capture Amount Manually**: authorize the amount at checkout and capture it later (see
      [Use Manual Capture](#use-manual-capture)). Odoo only allows it when every enabled payment
-     method supports it (**Card**, **PayPal**, **Samsung Pay**); disable the other methods first
+     method supports it (**Card**, **PayPal**, **Samsung Pay**, **Google Pay**); disable the other
+     methods first
 6. Click `Save`
 
 ---
@@ -195,6 +196,9 @@ with the `signature` header) and rejected if the signature does not match.
 
 ## Module History
 
+- `19.0.1.1.0`
+  - The Region setting is renamed to Endpoint (`paytabs_endpoint`), Google Pay is added, and
+    the supported payment methods are linked to the provider.
 - `19.0.1.0.0`
   - The first version of the module is released: hosted payment page, callback processing,
     refunds, manual capture and void.

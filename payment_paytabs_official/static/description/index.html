@@ -1,115 +1,128 @@
 <section class="oe_container">
-    <div class="oe_row oe_spaced">
-        <h2 class="oe_slogan">Payment Provider: PayTabs</h2>
-        <h3 class="oe_slogan">Official PayTabs payment provider for Odoo 19. Accept cards and local payment methods across the Middle East and North Africa.</h3>
-        <div class="oe_span12">
-            <img src="main_screenshot.gif" class="oe_picture oe_screenshot" alt="PayTabs hosted payment page reached from an Odoo checkout"/>
+    <div class="container py-5">
+        <h2 class="text-center mb-3">Payment Provider: PayTabs</h2>
+        <p class="lead text-center text-muted mb-4">Official PayTabs payment provider for Odoo.</p>
+        <p class="text-center text-muted mb-4">
+            Accept cards and local payment methods across the Middle East and North Africa.
+        </p>
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-10 col-lg-8 text-center">
+                <img src="main_screenshot.gif" class="img-fluid rounded shadow-sm" alt="PayTabs hosted payment page reached from an Odoo checkout"/>
+            </div>
         </div>
     </div>
 </section>
 
 <section class="oe_container oe_dark">
-    <div class="oe_row oe_spaced">
-        <h2 class="oe_slogan">Hosted payment page</h2>
-        <div class="oe_span6">
-            <p class="oe_mt32">
-                Customers are redirected to the PCI-DSS compliant PayTabs payment page and brought
-                back to Odoo once the payment is completed. No card data ever touches your server.
-            </p>
-            <p>
-                The transaction is confirmed from the signed server-to-server callback PayTabs
-                sends to your instance, so the outcome is reliable even if the customer closes the
-                browser before returning.
-            </p>
-        </div>
-        <div class="oe_span6">
-            <ul class="oe_mt32">
-                <li><b>Cards</b>: Visa, Mastercard, American Express, Meeza, UnionPay, OmanNet</li>
-                <li><b>Local methods</b>: Mada, STC Pay, KNET, Samsung Pay, PayPal</li>
-                <li><b>Buy now, pay later</b>: Tabby, Tamara, ValU, Aman, Forsa, Halan, Souhoola, Bank Installments</li>
-            </ul>
+    <div class="container py-5">
+        <h2 class="text-center mb-4">Hosted payment page</h2>
+        <div class="row g-4">
+            <div class="col-12 col-lg-6">
+                <p>
+                    Customers are redirected to the PCI-DSS compliant PayTabs payment page and brought
+                    back to Odoo once the payment is completed. No card data ever touches your server.
+                </p>
+                <p class="mb-0">
+                    The transaction is confirmed from the signed server-to-server callback PayTabs
+                    sends to your instance, so the outcome is reliable even if the customer closes the
+                    browser before returning.
+                </p>
+            </div>
+            <div class="col-12 col-lg-6">
+                <ul class="mb-0">
+                    <li><b>Cards</b>: Visa, Mastercard, American Express, Meeza, UnionPay, OmanNet</li>
+                    <li><b>Local methods</b>: Mada, STC Pay, KNET, Benefit, Samsung Pay, Google Pay, PayPal</li>
+                    <li><b>Buy now, pay later</b>: Tabby, Tamara, ValU, Aman, Forsa, Halan, Souhoola, Bank Installments</li>
+                </ul>
+            </div>
         </div>
     </div>
 </section>
 
 <section class="oe_container">
-    <div class="oe_row oe_spaced">
-        <h2 class="oe_slogan">Refunds, manual capture and void</h2>
-        <div class="oe_span6">
-            <p class="oe_mt32">
-                Refund a payment, in full or in part, straight from the Odoo transaction. Enable
-                <b>Capture Amount Manually</b> to authorize the amount at checkout and capture or
-                void it later, including partial captures and partial releases.
-            </p>
-        </div>
-        <div class="oe_span6">
-            <p class="oe_mt32">
-                Declined, failed, expired and held transactions carry the reason reported by
-                PayTabs in the chatter of the linked invoice, sales order or payment, while the
-                customer only sees a generic message.
-            </p>
+    <div class="container py-5">
+        <h2 class="text-center mb-4">Refunds, manual capture and void</h2>
+        <div class="row g-4">
+            <div class="col-12 col-lg-6">
+                <p class="mb-0">
+                    Refund a payment, in full or in part, straight from the Odoo transaction. Enable
+                    <b>Capture Amount Manually</b> to authorize the amount at checkout and capture or
+                    void it later, including partial captures and partial releases.
+                </p>
+            </div>
+            <div class="col-12 col-lg-6">
+                <p class="mb-0">
+                    Declined, failed, expired and held transactions carry the reason reported by
+                    PayTabs in the chatter of the linked invoice, sales order or payment, while the
+                    customer only sees a generic message.
+                </p>
+            </div>
         </div>
     </div>
 </section>
 
 <section class="oe_container oe_dark">
-    <div class="oe_row oe_spaced">
-        <h2 class="oe_slogan">All PayTabs regions</h2>
-        <div class="oe_span12">
-            <p class="oe_mt32 text-center">
-                United Arab Emirates, Saudi Arabia, Egypt, Oman, Jordan, Kuwait, Qatar, Iraq,
-                Morocco, Global, Madfoat and Cuzdan. Pick the region of your merchant profile;
-                test and live profiles share the same endpoint.
-            </p>
+    <div class="container py-5">
+        <h2 class="text-center mb-4">All PayTabs endpoints</h2>
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-10">
+                <p class="text-center mb-0">
+                    United Arab Emirates, Saudi Arabia, Egypt, Oman, Jordan, Kuwait, Qatar, Iraq,
+                    Morocco, Global and every other PayTabs platform. Pick the endpoint your merchant
+                    profile was issued on; test and live profiles share the same endpoint.
+                </p>
+            </div>
         </div>
     </div>
 </section>
 
 <section class="oe_container">
-    <div class="oe_row oe_spaced">
-        <h2 class="oe_slogan">Setup in minutes</h2>
-        <div class="oe_span12">
-            <ol class="oe_mt32">
-                <li>Install the module and open <i>Invoicing &raquo; Configuration &raquo; Payment Providers &raquo; PayTabs</i>.</li>
-                <li>Select your <b>Region</b> and enter the <b>Profile ID</b> and <b>Server Key</b> from <i>Merchant Dashboard &raquo; Developers &raquo; Key management</i>.</li>
-                <li>Set the state to <b>Test Mode</b> or <b>Enabled</b>, pick the payment methods your profile supports, and publish the provider.</li>
-            </ol>
-            <p>
-                The callback URL <code>https://&lt;your-domain&gt;/payment/paytabs/webhook</code> is
-                sent with every payment request; nothing has to be configured in the PayTabs
-                dashboard. Your Odoo instance must be reachable over HTTPS.
-            </p>
+    <div class="container py-5">
+        <h2 class="text-center mb-4">Setup in minutes</h2>
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-10">
+                <ol>
+                    <li>Install the module and open <i>Invoicing &raquo; Configuration &raquo; Payment Providers &raquo; PayTabs</i>.</li>
+                    <li>Select your <b>Endpoint</b> and enter the <b>Profile ID</b> and <b>Server Key</b> from <i>Merchant Dashboard &raquo; Developers &raquo; Key management</i>.</li>
+                    <li>Set the state to <b>Test Mode</b> or <b>Enabled</b>, pick the payment methods your profile supports, and publish the provider.</li>
+                </ol>
+                <p class="mb-0 text-break">
+                    The callback URL <code>https://&lt;your-domain&gt;/payment/paytabs/webhook</code> is
+                    sent with every payment request; nothing has to be configured in the PayTabs
+                    dashboard. Your Odoo instance must be reachable over HTTPS.
+                </p>
+            </div>
         </div>
     </div>
 </section>
 
 <section class="oe_container oe_dark">
-    <div class="oe_row oe_spaced">
-        <h2 class="oe_slogan">Built on the Odoo payment framework</h2>
-        <div class="oe_span12">
-            <p class="oe_mt32 text-center">
-                Uses the standard <code>payment</code> module flows of Odoo 19 (redirect payment,
-                refunds, manual capture), ships an Arabic translation and a full automated test
-                suite, and masks the server key and signatures in the server logs.
-            </p>
-            <p class="text-center">
-                Tokenization (saved cards) and express checkout are not part of this version.
-            </p>
+    <div class="container py-5">
+        <h2 class="text-center mb-4">Built on the Odoo payment framework</h2>
+        <div class="row justify-content-center">
+            <div class="col-12 col-lg-10">
+                <p class="text-center">
+                    Uses the standard <code>payment</code> module flows of Odoo 19 (redirect payment,
+                    refunds, manual capture), ships an Arabic translation and a full automated test
+                    suite, and masks the server key and signatures in the server logs.
+                </p>
+                <p class="text-center mb-0">
+                    Tokenization (saved cards) and express checkout are not part of this version.
+                </p>
+            </div>
         </div>
     </div>
 </section>
 
 <section class="oe_container">
-    <div class="oe_row oe_spaced">
-        <h2 class="oe_slogan">Support</h2>
-        <div class="oe_span12 text-center">
-            <p class="oe_mt32">
-                <a href="https://www.paytabs.com" target="_blank">www.paytabs.com</a>
-                &nbsp;&middot;&nbsp;
-                <a href="mailto:customercare@paytabs.com">customercare@paytabs.com</a>
-                &nbsp;&middot;&nbsp;
-                <a href="https://support.paytabs.com/en/support/solutions/folders/60000479499" target="_blank">PayTabs API documentation</a>
-            </p>
+    <div class="container py-5">
+        <h2 class="text-center mb-4">Support</h2>
+        <div class="d-flex flex-column flex-md-row justify-content-center align-items-center gap-2 gap-md-3 text-center">
+            <a href="https://www.paytabs.com" target="_blank">www.paytabs.com</a>
+            <span class="d-none d-md-inline">&middot;</span>
+            <a href="mailto:customercare@paytabs.com">customercare@paytabs.com</a>
+            <span class="d-none d-md-inline">&middot;</span>
+            <a href="https://support.paytabs.com/en/support/solutions/folders/60000479499" target="_blank">PayTabs API documentation</a>
         </div>
     </div>
 </section>
