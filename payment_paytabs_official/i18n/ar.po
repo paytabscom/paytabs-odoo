@@ -96,6 +96,11 @@ msgid "PayTabs Server Key"
 msgstr "مفتاح خادم PayTabs"
 
 #. module: payment_paytabs_official
+#: model:ir.model.fields,field_description:payment_paytabs_official.field_payment_token__paytabs_tran_ref
+msgid "PayTabs Transaction Reference"
+msgstr "مرجع معاملة PayTabs"
+
+#. module: payment_paytabs_official
 #. odoo-python
 #: code:addons/payment_paytabs_official/models/payment_transaction.py:0
 msgid ""
@@ -125,6 +130,11 @@ msgstr "PayTabs: Tunnel (وضع الاختبار)"
 #: model:ir.model,name:payment_paytabs_official.model_payment_provider
 msgid "Payment Provider"
 msgstr "مزود الدفع"
+
+#. module: payment_paytabs_official
+#: model:ir.model,name:payment_paytabs_official.model_payment_token
+msgid "Payment Token"
+msgstr "رمز الدفع"
 
 #. module: payment_paytabs_official
 #: model:ir.model,name:payment_paytabs_official.model_payment_transaction
@@ -203,6 +213,13 @@ msgstr ""
 "مختلفة."
 
 #. module: payment_paytabs_official
+#: model:ir.model.fields,help:payment_paytabs_official.field_payment_token__paytabs_tran_ref
+msgid ""
+"The reference of the transaction that created the token; PayTabs requires "
+"it to charge the token."
+msgstr "مرجع المعاملة التي أنشأت الرمز؛ يطلبه PayTabs لتحصيل الدفع عن طريق الرمز."
+
+#. module: payment_paytabs_official
 #: model:ir.model.fields,help:payment_paytabs_official.field_payment_provider__paytabs_tunnel_url
 msgid ""
 "The public HTTPS URL PayTabs must use to reach this instance when it is not "
@@ -250,6 +267,12 @@ msgstr ""
 "العنوان المعروض عند الدفع لطريقة الدفع بالبطاقة الخاصة بهذا المزود، مثل "
 "\"مدفوعات PayTabs\". اتركه فارغًا للاحتفاظ بالعنوان القياسي \"البطاقة\". "
 "تحتفظ طرق الدفع الأخرى بأسمائها."
+
+#. module: payment_paytabs_official
+#. odoo-python
+#: code:addons/payment_paytabs_official/models/payment_transaction.py:0
+msgid "The transaction is not linked to a token."
+msgstr "المعاملة غير مرتبطة برمز دفع."
 
 #. module: payment_paytabs_official
 #. odoo-python

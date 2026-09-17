@@ -102,10 +102,47 @@ class PayTabsCommon(PaymentCommon):
             'response_code': '120',
             'response_message': 'Previous transaction is on hold',
         })
+        cls.token_value = '2C4A5B6D7E8F9A0B1C2D3E4F5A6B7C8D'
+        cls.tokenized_webhook_data = dict(cls.webhook_data, token=cls.token_value)
+        cls.tokenized_return_data = dict(cls.return_data, token=cls.token_value)
+        cls.recurring_data = {
+            'tran_ref': 'TST2016700000696',
+            'tran_type': 'Sale',
+            'tran_class': 'C/Auth',
+            'previous_tran_ref': 'TST2016700000692',
+            'profile_id': 12345,
+            'cart_id': cls.reference,
+            'cart_currency': cls.currency.name,
+            'cart_amount': str(cls.amount),
+            'token': cls.token_value,
+            'payment_result': {
+                'response_status': 'A',
+                'response_code': 'G31826',
+                'response_message': 'Authorised',
+            },
+            'payment_info': {
+                'payment_method': 'Visa',
+                'card_scheme': 'Visa',
+                'payment_description': '4111 11## #### 1111',
+            },
+        }
+        cls.recurring_error_data = {
+            'code': 112,
+            'message': "Method/Class/Currency combination not supported",
+        }
 
     def _create_authorized_transaction(self, **values):
         """ Create an authorized transaction on a provider configured for manual capture. """
         self.provider.capture_manually = True
         return self._create_transaction(
             'redirect', state='authorized', provider_reference='TST2016700000692', **values
+        )
+
+    def _create_paytabs_token(self, **values):
+        """ Create a PayTabs token carrying the reference of the transaction that created it. """
+        return self._create_token(
+            provider_ref=self.token_value,
+            payment_details='1111',
+            paytabs_tran_ref='TST2016700000692',
+            **values,
         )

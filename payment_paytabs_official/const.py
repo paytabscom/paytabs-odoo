@@ -36,6 +36,12 @@ AUTH_TRAN_TYPE = 'auth'
 # The transaction types PayTabs reports for the release of an authorized amount.
 VOID_TRAN_TYPES = ('void', 'release')
 
+# The `tokenise` value requesting PayTabs to save the payment method as a 32-character hex token.
+TOKENISE_FORMAT = 2
+
+# The transaction class of merchant-initiated payments made with a saved token.
+RECURRING_TRAN_CLASS = 'recurring'
+
 # The codes of the payment methods to activate when PayTabs is activated.
 DEFAULT_PAYMENT_METHOD_CODES = {
     # Primary payment methods.

@@ -1,5 +1,6 @@
 # Copyright (C) PayTabs. Licensed under LGPL-3; see the LICENSE file for details.
 
+import re
 from urllib.parse import parse_qsl, urlsplit
 
 from odoo import _, api, models
@@ -131,7 +132,31 @@ class PaymentTransaction(models.Model):
         paytabs_method_code = const.PAYMENT_METHODS_MAPPING.get(self.payment_method_code)
         if paytabs_method_code:
             payload['payment_methods'] = [paytabs_method_code]
+        # Ask PayTabs to save the payment method; the token is only sent back with the result.
+        if self.tokenize:
+            payload['tokenise'] = const.TOKENISE_FORMAT
         return payload
+
+    def _send_payment_request(self):
+        """ Override of `payment` to send a payment request to PayTabs with a saved token.
+
+        Payments with a token are merchant-initiated: PayTabs charges the saved payment method
+        without customer interaction and returns the result synchronously.
+        """
+        if self.provider_code != 'paytabs':
+            return super()._send_payment_request()
+
+        if not self.token_id:
+            raise ValidationError("PayTabs: " + _("The transaction is not linked to a token."))
+
+        self._paytabs_send_direct_request(
+            const.AUTH_TRAN_TYPE if self.provider_id.capture_manually else 'sale',
+            const.RECURRING_TRAN_CLASS,
+            self.token_id.paytabs_tran_ref,
+            self.reference,
+            # The reference of the transaction that created the token is required alongside it.
+            token=self.token_id.provider_ref,
+        )
 
     def _send_refund_request(self):
         """ Override of `payment` to send a refund request to PayTabs. """
@@ -164,13 +189,30 @@ class PaymentTransaction(models.Model):
     def _paytabs_send_follow_up_request(self, tran_type, description):
         """ Send a follow-up request on the source transaction and process the response.
 
-        Follow-ups (refund, capture, void, release) reference the source transaction and return
-        their result immediately, without customer interaction.
-
-        Note: `self.ensure_one()`
+        Follow-ups (refund, capture, void, release) reference the source transaction.
 
         :param str tran_type: The PayTabs transaction type of the follow-up.
         :param str description: The cart description of the follow-up.
+        :return: None
+        :raise ValidationError: If PayTabs rejected the request.
+        """
+        self._paytabs_send_direct_request(
+            tran_type, 'ecom', self.source_transaction_id.provider_reference, description
+        )
+
+    def _paytabs_send_direct_request(self, tran_type, tran_class, tran_ref, description, **extra):
+        """ Send a payment request that references a previous transaction and process the result.
+
+        Unlike payment page requests, these requests (follow-ups and payments with a token) are
+        completed without customer interaction and return their result synchronously.
+
+        Note: `self.ensure_one()`
+
+        :param str tran_type: The PayTabs transaction type.
+        :param str tran_class: The PayTabs transaction class.
+        :param str tran_ref: The PayTabs reference of the transaction to reference.
+        :param str description: The cart description.
+        :param dict extra: Additional payload values.
         :return: None
         :raise ValidationError: If PayTabs rejected the request.
         """
@@ -179,13 +221,14 @@ class PaymentTransaction(models.Model):
         payload = {
             'profile_id': self.provider_id.paytabs_profile_id,
             'tran_type': tran_type,
-            'tran_class': 'ecom',
-            'tran_ref': self.source_transaction_id.provider_reference,
+            'tran_class': tran_class,
+            'tran_ref': tran_ref,
             'cart_id': self.reference,
             'cart_currency': self.currency_id.name,
-            'cart_amount': abs(self.amount),  # The amount is negative for refund transactions.
+            'cart_amount': abs(self.amount),  # Major units; negative for refund transactions.
             'cart_description': description,
             'plugin_info': self.provider_id._paytabs_get_plugin_info(),
+            **extra,
         }
         payment_data = self._send_api_request('POST', 'payment/request', json=payload)
 
@@ -198,7 +241,7 @@ class PaymentTransaction(models.Model):
                 code=payment_data.get('code'),
             ))
 
-        # The follow-up is assigned its own transaction reference on PayTabs' side.
+        # The request is assigned its own transaction reference on PayTabs' side.
         self.provider_reference = payment_data.get('tran_ref')
         self._process('paytabs', payment_data)
 
@@ -226,6 +269,36 @@ class PaymentTransaction(models.Model):
         return {
             'amount': float(amount),  # PayTabs sends amounts in major units.
             'currency_code': currency_code,
+        }
+
+    def _extract_token_values(self, payment_data):
+        """ Override of `payment` to extract the token values from the payment data.
+
+        The token is only sent with the result of a payment requested with `tokenise`. The
+        redirect data carries the token alone, while the webhook data also carries `payment_info`
+        describing the saved payment method; the token is thus created from the webhook data.
+        Payments made with a token echo the same token, in which case no new token is created.
+        """
+        if self.provider_code != 'paytabs':
+            return super()._extract_token_values(payment_data)
+
+        token = payment_data.get('token')
+        payment_info = payment_data.get('payment_info')
+        if (
+            not token
+            or not payment_info
+            or (self.token_id and self.token_id.provider_ref == token)
+        ):
+            return {}
+
+        # The payment description is a masked card number ("4111 11## #### 1111") for cards but
+        # a scheme followed by the last digits ("Visa 3619") for wallets; keep the trailing digits.
+        description = (payment_info.get('payment_description') or '').strip()
+        trailing_digits = re.search(r'(\d+)\s*$', description)
+        return {
+            'provider_ref': token,
+            'payment_details': trailing_digits.group(1) if trailing_digits else description,
+            'paytabs_tran_ref': payment_data.get('tran_ref') or payment_data.get('tranRef'),
         }
 
     def _apply_updates(self, payment_data):

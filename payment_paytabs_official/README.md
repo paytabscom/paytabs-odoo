@@ -67,6 +67,8 @@ odoo -c /etc/odoo/odoo.conf -d <database> -i payment_paytabs_official --stop-aft
      [Use Manual Capture](#use-manual-capture)). Odoo only allows it when every enabled payment
      method supports it (**Card**, **PayPal**, **Samsung Pay**, **Google Pay**); disable the other
      methods first
+   - **Allow Saving Payment Methods**: let customers save their payment method for later
+     payments (see [Use Saved Payment Methods](#use-saved-payment-methods)).
 6. Click `Save`
 
 ---
@@ -124,6 +126,27 @@ amount from the PayTabs dashboard, as the API refuses further follow-ups on that
 
 ---
 
+## Use Saved Payment Methods
+
+With **Allow Saving Payment Methods** enabled, the customer can tick **Save my payment details**
+at checkout. The payment page then returns a token with the payment result, and Odoo saves it as
+a payment method of the customer once the callback is processed. The saved method is listed at
+checkout and in the customer's portal, and is charged without redirection: the payment is sent to
+PayTabs as a recurring transaction and its result is applied from the response. Subscriptions and
+other automatic payments are charged the same way.
+
+Enable **Recurring** on your PayTabs profile (contact PayTabs support); otherwise PayTabs rejects
+the charge with the error `Method/Class/Currency combination not supported` (code `112`).
+
+Deleting a saved method in Odoo (from the portal, or by archiving the token) deletes it on PayTabs
+as well. Methods deleted from the PayTabs dashboard are not synchronized: the charge fails and the
+customer has to delete the method in Odoo and save it again.
+
+A payment method cannot be saved without making a payment: PayTabs is not offered when Odoo asks
+for a payment method to be validated only (e.g. a subscription with a free trial).
+
+---
+
 ## Transaction Statuses
 
 | PayTabs status | Odoo transaction state |
@@ -144,7 +167,6 @@ generic message.
 
 ## Not Implemented
 
-- Tokenization (saved cards)
 - Express checkout
 - IPN (follow-ups made from the PayTabs dashboard are not synchronized)
 
@@ -189,6 +211,11 @@ Refunds, captures and voids use the same endpoint with the `refund`, `capture` a
 transaction types, referencing the original transaction. PayTabs accepts `void` for both the full
 and the partial release of an authorized amount.
 
+Saved payment methods are requested with the `tokenise` parameter and stored as `payment.token`
+records with the token and the reference of the transaction that created it. Payments with a
+saved method use the same endpoint with the `recurring` transaction class, whose result is
+returned synchronously; archived tokens are deleted through the `payment/token/delete` endpoint.
+
 Callback notifications are signed with the server key (HMAC-SHA256 over the raw body, compared
 with the `signature` header) and rejected if the signature does not match.
 
@@ -196,6 +223,9 @@ with the `signature` header) and rejected if the signature does not match.
 
 ## Module History
 
+- `19.0.2.0.0`
+  - Saved payment methods (tokenization) are added for Card, Mada and Google Pay, including
+    payments with a saved method and their deletion on PayTabs.
 - `19.0.1.1.0`
   - The Region setting is renamed to Endpoint (`paytabs_endpoint`), Google Pay is added, and
     the supported payment methods are linked to the provider.
